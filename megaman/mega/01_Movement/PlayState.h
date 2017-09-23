@@ -43,14 +43,26 @@ class PlayState : public cgf::GameState
 
     static PlayState m_PlayState;
 
-    void centerMapOnPlayer();
 
-    int dirx, diry, last, jumpCount, posx,posy;
-    bool shooting, jumping;
+    int dirx, diry, last, jumpCount, posx,posy, lastAnim;
+    bool shooting, jumping, walking;
     cgf::Sprite playSprite1;
     sf::RenderWindow* screen;
     cgf::InputManager* im;
     tmx::MapLoader* map;
+
+    void setAnim();
+
+    // Centers the camera on the player position
+    void centerMapOnPlayer();
+
+    // Checks collision between a sprite and a map layer
+    sf::Uint16 checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite* obj);
+
+    // get a cell GID from the map (x and y in world coords)
+    sf::Uint16 getCellFromMap(uint8_t layernum, float x, float y);
+
+
 };
 
 #endif

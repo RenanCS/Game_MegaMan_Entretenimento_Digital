@@ -1229,7 +1229,7 @@
 	"GameState.h"
 	"Sprite.h"
 
-1505179572 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.h
+1506115167 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.h
 	"GameState.h"
 	"Sprite.h"
 	"InputManager.h"
@@ -1268,7 +1268,7 @@
 	"Sprite.h"
 	"InputManager.h"
 
-1505181260 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.cpp
+1506115450 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.cpp
 	<iostream>
 	<cmath>
 	"Game.h"
