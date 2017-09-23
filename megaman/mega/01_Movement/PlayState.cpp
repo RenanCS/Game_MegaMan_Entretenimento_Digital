@@ -21,12 +21,12 @@ using namespace std;
 
 void PlayState::init()
 {
-    posx = 10;
-    posy = 320;
+    posx = 100;
+    posy = 288;
     walking = false;
 
     playSprite1.load("data/img/megaman.png", 32, 32, 0, 0, 0, 0, 3, 5, 14);
-    playSprite1.setPosition(10,320);
+    playSprite1.setPosition(posx,posy);
     playSprite1.setFrameRange(12,13);
     playSprite1.setAnimRate(15);
     playSprite1.setLooped(true);
@@ -277,7 +277,7 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
             if (vx > 0)
             {
                 // Trying to move right
-
+                cout << "entrou 1 = "  << endl;
                 int upRight   = getCellFromMap(layer, x2*tilesize.x, y1*tilesize.y);
                 int downRight = getCellFromMap(layer, x2*tilesize.x, y2*tilesize.y);
                 if (upRight || downRight)
@@ -286,6 +286,7 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
                     px = x2 * tilesize.x;
                     px -= objsize.x;// + 1;
                     vx = 0;
+
                     if(upRight)
                         bump = upRight;
                     else
@@ -296,7 +297,7 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
             else if (vx < 0)
             {
                 // Trying to move left
-
+                cout << "entrou 2 = "  << endl;
                 int upLeft   = getCellFromMap(layer, x1*tilesize.x, y1*tilesize.y);
                 int downLeft = getCellFromMap(layer, x1*tilesize.x, y2*tilesize.y);
                 if (upLeft || downLeft)
@@ -304,6 +305,7 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
                     // Place the player as close to the solid tile as possible
                     px = (x1+1) * tilesize.x;
                     vx = 0;
+
                     if(upLeft)
                         bump = upLeft;
                     else
@@ -340,7 +342,7 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
         if (x1 >= 0 && x2 < mapsize.x && y1 >= 0 && y2 < mapsize.y)
         {
             if (vy > 0)
-            {
+            {   cout << "entrou 3 = "  << endl;
                 // Trying to move down
                 int downLeft  = getCellFromMap(layer, x1*tilesize.x, y2*tilesize.y);
                 int downRight = getCellFromMap(layer, x2*tilesize.x, y2*tilesize.y);
@@ -350,6 +352,7 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
                     py = y2 * tilesize.y;
                     py -= objsize.y;
                     vy = 0;
+
                     if(downLeft)
                         bump = downLeft;
                     else
@@ -360,7 +363,7 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
             else if (vy < 0)
             {
                 // Trying to move up
-
+                cout << "entrou 4 = "  << endl;
                 int upLeft  = getCellFromMap(layer, x1*tilesize.x, y1*tilesize.y);
                 int upRight = getCellFromMap(layer, x2*tilesize.x, y1*tilesize.y);
                 if (upLeft || upRight)
@@ -368,6 +371,7 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
                     // Place the player as close to the solid tile as possible
                     py = (y1 + 1) * tilesize.y;
                     vy = 0;
+
                     if(upLeft)
                         bump = upLeft;
                     else
@@ -389,6 +393,8 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
         }
     }
 
+
+    /*
     // Now apply the movement and animation
 
     obj->setPosition(px+vx,py+vy);
@@ -407,7 +413,7 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
         obj->setPosition(px,0);
     else if(py + objsize.y >= mapsize.y * tilesize.y)
         obj->setPosition(px, mapsize.y*tilesize.y - objsize.y - 1);
-
+    */
     return bump;
 }
 
@@ -428,16 +434,22 @@ sf::Uint16 PlayState::getCellFromMap(uint8_t layernum, float x, float y)
 
 void PlayState::update(cgf::Game* game)
 {
+    screen = game->getScreen();
+
+    sf::Uint16 tile = checkCollision(0, game, &playSprite1);
+    cout << "Tile: " << tile << endl;
+
+
     float x = playSprite1.getPosition().x;
     float y = playSprite1.getPosition().y;
+
     x += dirx*5;
     y += diry*5;
+
     playSprite1.setPosition(x,y);
     playSprite1.update(game->getUpdateInterval());
-    //sf::Uint16 tile = checkCollision(1, game, &playSprite1);
-    //cout << "Tile: " << tile << endl;
 
-    //centerMapOnPlayer();
+    centerMapOnPlayer();
 }
 
 void PlayState::draw(cgf::Game* game)
@@ -445,5 +457,5 @@ void PlayState::draw(cgf::Game* game)
     screen = game->getScreen();
     map->Draw(*screen);         // mapa é fundo, precisa desenhar primeiro
     screen->draw(playSprite1);
-    centerMapOnPlayer();
+    //centerMapOnPlayer();
 }
