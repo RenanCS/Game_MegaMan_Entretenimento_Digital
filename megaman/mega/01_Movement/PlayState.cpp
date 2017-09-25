@@ -22,7 +22,7 @@ using namespace std;
 void PlayState::init()
 {
     posx = 100;
-    posy = 288;
+    posy = 285;
     walking = false;
 
     playSprite1.load("data/img/megaman.png", 32, 32, 0, 0, 0, 0, 3, 5, 14);
@@ -37,7 +37,7 @@ void PlayState::init()
 
 
     dirx = 0; // sprite direction: right (1), left (-1)
-    diry = 0; // down (1), up (-1)
+    diry = 1; // down (1), up (-1)
     last = 0;
 
     im = cgf::InputManager::instance();
@@ -97,7 +97,8 @@ void PlayState::handleEvents(cgf::Game* game)
 
     if(im->testEvent("jump")){
         if (!jumping){
-            jumpCount = 20;
+            jumping = true;
+            jumpCount = 10;
         }
     }
 
@@ -378,7 +379,6 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
     }
 
 
-    /*
     // Now apply the movement and animation
 
     obj->setPosition(px+vx,py+vy);
@@ -386,6 +386,8 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
     py = obj->getPosition().y;
 
     obj->update(deltaTime, false); // only update animation
+
+  /*
 
     // Check collision with edges of map
     if (px < 0)
@@ -420,33 +422,29 @@ void PlayState::update(cgf::Game* game)
 {
     screen = game->getScreen();
 
-    sf::Uint16 tile = checkCollision(0, game, &playSprite1);
+    jumpCount -= jumpCount > 0 ? 1 : 0;
+    walking = dirx != 0;
+
+    if(jumpCount > 0){
+        diry = -1;
+    } else {
+        diry = 1;
+    }
+
+
+
+    playSprite1.setXspeed(dirx*150);
+    playSprite1.setYspeed(diry*200);
+
+    sf::Uint16 tile = checkCollision(1, game, &playSprite1);
     cout << "Tile: " << tile << endl;
 
-    jumpCount -= jumpCount > 0 ? 1 : 0;
-    jumping = jumpCount > 0;
-    walking = dirx != 0;    
-
-    if(jumpCount > 10){
-        playSprite1.move(0, -5);
-    }else if(jumping){
-        playSprite1.move(0, 5);
-    }
-
-    if(!jumping){
-        playSprite1.setPosition(playSprite1.getPosition().x,posy);
-    }
+    jumping = tile != 11;
 
     setAnim();
 
-    float x = playSprite1.getPosition().x;
-    float y = playSprite1.getPosition().y;
-
-    x += dirx*5;
-    y += diry*5;
-
-    playSprite1.setPosition(x,y);
-    playSprite1.update(game->getUpdateInterval());
+    //playSprite1.setPosition(x,y);
+    //playSprite1.update(game->getUpdateInterval());
 
     centerMapOnPlayer();
 }
@@ -456,5 +454,4 @@ void PlayState::draw(cgf::Game* game)
     screen = game->getScreen();
     map->Draw(*screen);         // mapa � fundo, precisa desenhar primeiro
     screen->draw(playSprite1);
-    //centerMapOnPlayer();
 }
