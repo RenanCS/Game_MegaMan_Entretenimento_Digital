@@ -32,7 +32,7 @@ void PlayState::init()
     playSprite1.setLooped(true);
     playSprite1.play();
 
-    map = new tmx::MapLoader("data/maps");       // todos os mapas/tilesets serão lidos de data/maps
+    map = new tmx::MapLoader("data/maps");       // todos os mapas/tilesets serï¿½o lidos de data/maps
     map->Load("mapmegaman.tmx");
 
 
@@ -97,29 +97,13 @@ void PlayState::handleEvents(cgf::Game* game)
 
     if(im->testEvent("jump")){
         if (!jumping){
-            jumpCount = 400;
+            jumpCount = 20;
         }
     }
-
-    jumpCount -= jumpCount > 0 ? 1 : 0;
-    jumping = jumpCount > 0;
-    walking = dirx != 0;
 
     if(last != dirx && dirx != 0){
         playSprite1.setMirror(dirx == -1);
     }
-
-    if(jumpCount > 0){
-        playSprite1.move(0, -0.25);
-    }else if(jumping){
-        playSprite1.move(0, 0.25);
-    }
-
-    if(!jumping){
-        playSprite1.setPosition(playSprite1.getPosition().x,posy);
-    }
-
-    setAnim();
 
     last = dirx;
 
@@ -439,6 +423,21 @@ void PlayState::update(cgf::Game* game)
     sf::Uint16 tile = checkCollision(0, game, &playSprite1);
     cout << "Tile: " << tile << endl;
 
+    jumpCount -= jumpCount > 0 ? 1 : 0;
+    jumping = jumpCount > 0;
+    walking = dirx != 0;    
+
+    if(jumpCount > 10){
+        playSprite1.move(0, -5);
+    }else if(jumping){
+        playSprite1.move(0, 5);
+    }
+
+    if(!jumping){
+        playSprite1.setPosition(playSprite1.getPosition().x,posy);
+    }
+
+    setAnim();
 
     float x = playSprite1.getPosition().x;
     float y = playSprite1.getPosition().y;
@@ -455,7 +454,7 @@ void PlayState::update(cgf::Game* game)
 void PlayState::draw(cgf::Game* game)
 {
     screen = game->getScreen();
-    map->Draw(*screen);         // mapa é fundo, precisa desenhar primeiro
+    map->Draw(*screen);         // mapa ï¿½ fundo, precisa desenhar primeiro
     screen->draw(playSprite1);
     //centerMapOnPlayer();
 }
