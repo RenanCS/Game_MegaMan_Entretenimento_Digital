@@ -33,7 +33,7 @@ void PlayState::init()
     playSprite1.play();
 
     map = new tmx::MapLoader("data/maps");       // todos os mapas/tilesets ser�o lidos de data/maps
-    map->Load("mapmegaman.tmx");
+    map->Load("megaman-v2.tmx");
 
 
     dirx = 0; // sprite direction: right (1), left (-1)
@@ -262,7 +262,6 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
             if (vx > 0)
             {
                 // Trying to move right
-                cout << "entrou 1 = "  << endl;
                 int upRight   = getCellFromMap(layer, x2*tilesize.x, y1*tilesize.y);
                 int downRight = getCellFromMap(layer, x2*tilesize.x, y2*tilesize.y);
                 if (upRight || downRight)
@@ -282,7 +281,6 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
             else if (vx < 0)
             {
                 // Trying to move left
-                cout << "entrou 2 = "  << endl;
                 int upLeft   = getCellFromMap(layer, x1*tilesize.x, y1*tilesize.y);
                 int downLeft = getCellFromMap(layer, x1*tilesize.x, y2*tilesize.y);
                 if (upLeft || downLeft)
@@ -327,8 +325,8 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
         if (x1 >= 0 && x2 < mapsize.x && y1 >= 0 && y2 < mapsize.y)
         {
             if (vy > 0)
-            {   cout << "entrou 3 = "  << endl;
-                // Trying to move down
+            {
+                  // Trying to move down
                 int downLeft  = getCellFromMap(layer, x1*tilesize.x, y2*tilesize.y);
                 int downRight = getCellFromMap(layer, x2*tilesize.x, y2*tilesize.y);
                 if (downLeft || downRight)
@@ -348,7 +346,6 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
             else if (vy < 0)
             {
                 // Trying to move up
-                cout << "entrou 4 = "  << endl;
                 int upLeft  = getCellFromMap(layer, x1*tilesize.x, y1*tilesize.y);
                 int upRight = getCellFromMap(layer, x2*tilesize.x, y1*tilesize.y);
                 if (upLeft || upRight)
@@ -431,15 +428,28 @@ void PlayState::update(cgf::Game* game)
         diry = 1;
     }
 
-
-
     playSprite1.setXspeed(dirx*150);
     playSprite1.setYspeed(diry*200);
 
     sf::Uint16 tile = checkCollision(1, game, &playSprite1);
     cout << "Tile: " << tile << endl;
 
-    jumping = tile != 11;
+
+    switch(tile){
+
+        case 21: //floor
+        break;
+        case 2: // ceiling
+        break;
+        case 1: // obstacle left, right
+        break;
+        case 58: // game over
+        break;
+
+
+    }
+
+    jumping = tile != 21;
 
     setAnim();
 
