@@ -1268,7 +1268,7 @@
 	"Sprite.h"
 	"InputManager.h"
 
-1506457304 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.cpp
+1506457870 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.cpp
 	<iostream>
 	<cmath>
 	"Game.h"
