@@ -19,6 +19,7 @@ PlayState PlayState::m_PlayState;
 
 using namespace std;
 
+
 void PlayState::init()
 {
     posx = 100;
@@ -429,7 +430,7 @@ void PlayState::update(cgf::Game* game)
     }
 
     playSprite1.setXspeed(dirx*150);
-    playSprite1.setYspeed(diry*200);
+    playSprite1.setYspeed(diry*250);
 
     sf::Uint16 tile = checkCollision(1, game, &playSprite1);
     cout << "Tile: " << tile << endl;
@@ -444,6 +445,7 @@ void PlayState::update(cgf::Game* game)
         case 1: // obstacle left, right
         break;
         case 58: // game over
+
         break;
 
 
