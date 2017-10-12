@@ -12,6 +12,7 @@
 
 #include "GameState.h"
 #include "Sprite.h"
+#include <SFML/Audio.hpp>
 
 class MenuState : public cgf::GameState
 {
@@ -42,6 +43,7 @@ class MenuState : public cgf::GameState
     static MenuState m_MenuState;
 
     cgf::Sprite menuSprite;
+    sf::Music music;
 
 };
 

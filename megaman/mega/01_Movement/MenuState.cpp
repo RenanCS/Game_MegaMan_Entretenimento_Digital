@@ -14,12 +14,7 @@
 #include "MenuState.h"
 #include "PlayState.h"
 #include "ConfigurationState.h"
-
-//#include "PlayMap.h"
-//#include "PlayMapTop.h"
-//#include "PlayMapAI.h"
-//#include "PlayPhysics.h"
-//#include "PlayMapPhysics.h"
+#include "SFML/Audio.hpp"
 
 MenuState MenuState::m_MenuState;
 
@@ -27,6 +22,12 @@ using namespace std;
 
 void MenuState::init()
 {
+    music.openFromFile("data/audio/GameStart.wav");
+    music.setVolume(25);
+    music.play();
+    music.setLoop(true);
+
+
     menuSprite.load("data/img/capa.png"); // load menu state bitmap
     cout << "MenuState Init Successful" << endl;
 }

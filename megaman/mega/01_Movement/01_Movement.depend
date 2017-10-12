@@ -1827,9 +1827,10 @@
 	<map>
 	<SFML/Graphics.hpp>
 
-1507509239 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\menustate.h
+1507766704 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\menustate.h
 	"GameState.h"
 	"Sprite.h"
+	<SFML/Audio.hpp>
 
 1507509238 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\lib\cgf\include\gamestate.h
 	"Game.h"
@@ -1865,7 +1866,9 @@
 
 1507509238 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\lib\cgf\include\pugixml\pugiconfig.hpp
 
-1507509239 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.h
+1507765370 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.h
+	<list>
+	<SFML/Audio.hpp>
 	"GameState.h"
 	"Sprite.h"
 	"InputManager.h"
@@ -1909,13 +1912,14 @@
 	"Game.h"
 	"MenuState.h"
 
-1507509239 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\menustate.cpp
+1507766787 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\menustate.cpp
 	<iostream>
 	"Game.h"
 	"InputManager.h"
 	"MenuState.h"
 	"PlayState.h"
 	"ConfigurationState.h"
+	"SFML/Audio.hpp"
 
 1507509239 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\pausestate.cpp
 	<iostream>
@@ -1929,7 +1933,7 @@
 	"Sprite.h"
 	"InputManager.h"
 
-1507674367 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.cpp
+1507765344 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.cpp
 	<iostream>
 	<cmath>
 	"Game.h"
@@ -1937,4 +1941,5 @@
 	"PauseState.h"
 	"InputManager.h"
 	<tmx/MapLoader.h>
+	"SFML/Audio.hpp"
 

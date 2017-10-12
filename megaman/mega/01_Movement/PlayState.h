@@ -9,11 +9,13 @@
 
 #ifndef PLAY_STATE_H_
 #define PLAY_STATE_H_
-
+#include <list>
+#include <SFML/Audio.hpp>
 #include "GameState.h"
 #include "Sprite.h"
 #include "InputManager.h"
 #include <tmx/MapLoader.h>
+
 
 class PlayState : public cgf::GameState
 {
@@ -28,6 +30,8 @@ class PlayState : public cgf::GameState
     void handleEvents(cgf::Game* game);
     void update(cgf::Game* game);
     void draw(cgf::Game* game);
+    void CreateEnemy();
+    void DrawEnemy(struct enemy &ene, int i);
 
     // Implement Singleton Pattern
     static PlayState* instance()
@@ -43,13 +47,13 @@ class PlayState : public cgf::GameState
 
     static PlayState m_PlayState;
 
-
     int dirx, diry, last, jumpCount, posx,posy, lastAnim;
     bool shooting, jumping, walking;
     cgf::Sprite playSprite1;
     sf::RenderWindow* screen;
     cgf::InputManager* im;
     tmx::MapLoader* map;
+    sf::Music music;
 
     void setAnim();
 

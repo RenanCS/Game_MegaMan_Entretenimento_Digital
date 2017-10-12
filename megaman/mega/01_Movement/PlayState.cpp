@@ -14,14 +14,39 @@
 #include "PauseState.h"
 #include "InputManager.h"
 #include <tmx/MapLoader.h>
+#include "SFML/Audio.hpp"
 
 PlayState PlayState::m_PlayState;
 
 using namespace std;
 
+/* Global variables */
+typedef struct coord {
+	float x;
+	float y;
+}coord;
+
+
+typedef struct enemy {
+    cgf::Sprite playEnemy;
+	int vida;
+	int status; //0-vivo, 1-morto
+	int nivel;
+	int id;
+	struct coord pontos;
+	struct coord posInicial;
+
+}enemy;
+
+struct enemy enemies[5];
+int numEnemy = 5;
+
 
 void PlayState::init()
 {
+    //Desenha inimigo
+    CreateEnemy();
+
     posx = 100;
     posy = 285;
     walking = false;
@@ -93,11 +118,20 @@ void PlayState::handleEvents(cgf::Game* game)
     if(im->testEvent("right"))
         dirx = 1;
 
-    if(im->testEvent("shoot"))
+    if(im->testEvent("shoot")){
         shooting = true;
+        music.openFromFile("data/audio/12-BigEye.wav");
+        music.setVolume(50);
+        music.play();
+    }
 
     if(im->testEvent("jump")){
         if (!jumping){
+
+            music.openFromFile("data/audio/27-PointTally.wav");
+            music.setVolume(50);
+            music.play();
+
             jumping = true;
             jumpCount = 10;
         }
@@ -416,6 +450,7 @@ sf::Uint16 PlayState::getCellFromMap(uint8_t layernum, float x, float y)
     return layer.tiles[row*mapsize.x + col].gid;
 }
 
+
 void PlayState::update(cgf::Game* game)
 {
     screen = game->getScreen();
@@ -461,9 +496,38 @@ void PlayState::update(cgf::Game* game)
     centerMapOnPlayer();
 }
 
+
 void PlayState::draw(cgf::Game* game)
 {
     screen = game->getScreen();
     map->Draw(*screen);         // mapa � fundo, precisa desenhar primeiro
     screen->draw(playSprite1);
+
+    for (int i = 0; i < numEnemy; i++) {
+			screen->draw(enemies[i].playEnemy);
+	}
+
+}
+
+
+void PlayState::CreateEnemy(){
+    cout << "Inicializou montarInimigos "  << endl;
+
+    for (int i = 0; i < numEnemy; i++) {
+			DrawEnemy(enemies[i], i);
+	}
+}
+
+void PlayState::DrawEnemy(struct enemy &ene, int i){
+
+    cout << "Criando o inimigo " << i  << endl;
+
+    posx = 100;
+    posy = 300 * i + 1;
+    ene.playEnemy.load("data/img/Char16.png", 32, 32, 0, 0, 0, 0, 3,0, 0);
+    ene.playEnemy.setPosition(posx,posy);
+    ene.playEnemy.setLooped(true);
+    //ene.playEnemy.play();
+
+
 }
