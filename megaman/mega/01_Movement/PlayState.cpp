@@ -44,13 +44,18 @@ int numEnemy = 5;
 
 void PlayState::init()
 {
+    //Especifica altura do volume
+    music.setVolume(50);
+
     //Desenha inimigo
     CreateEnemy();
 
+    //Posição inicial do Mega man
     posx = 100;
     posy = 285;
     walking = false;
 
+    //Inicializa o Mega man
     playSprite1.load("data/img/megaman.png", 32, 32, 0, 0, 0, 0, 3, 5, 14);
     playSprite1.setPosition(posx,posy);
     playSprite1.setFrameRange(12,13);
@@ -58,6 +63,7 @@ void PlayState::init()
     playSprite1.setLooped(true);
     playSprite1.play();
 
+    ////Desenha o mapa
     map = new tmx::MapLoader("data/maps");       // todos os mapas/tilesets ser�o lidos de data/maps
     map->Load("megaman-v2.tmx");
 
@@ -121,7 +127,6 @@ void PlayState::handleEvents(cgf::Game* game)
     if(im->testEvent("shoot")){
         shooting = true;
         music.openFromFile("data/audio/12-BigEye.wav");
-        music.setVolume(50);
         music.play();
     }
 
@@ -129,7 +134,6 @@ void PlayState::handleEvents(cgf::Game* game)
         if (!jumping){
 
             music.openFromFile("data/audio/27-PointTally.wav");
-            music.setVolume(50);
             music.play();
 
             jumping = true;
@@ -500,7 +504,9 @@ void PlayState::update(cgf::Game* game)
 void PlayState::draw(cgf::Game* game)
 {
     screen = game->getScreen();
-    map->Draw(*screen);         // mapa � fundo, precisa desenhar primeiro
+
+    map->Draw(*screen);
+
     screen->draw(playSprite1);
 
     for (int i = 0; i < numEnemy; i++) {
@@ -511,6 +517,7 @@ void PlayState::draw(cgf::Game* game)
 
 
 void PlayState::CreateEnemy(){
+
     cout << "Inicializou montarInimigos "  << endl;
 
     for (int i = 0; i < numEnemy; i++) {
@@ -522,12 +529,31 @@ void PlayState::DrawEnemy(struct enemy &ene, int i){
 
     cout << "Criando o inimigo " << i  << endl;
 
-    posx = 100;
-    posy = 300 * i + 1;
-    ene.playEnemy.load("data/img/Char16.png", 32, 32, 0, 0, 0, 0, 3,0, 0);
+    posx = 100 * (i + 1);
+    posy = 300;
+
+
+    ene.id = i;
+
+    switch(i)
+    {
+        case 0:
+            ene.playEnemy.load("data/img/gutsman.png", 32, 32, 0, 0, 0, 0,7, 1, 7);
+        break;
+
+        case 1:
+            ene.playEnemy.load("data/img/met.png", 32, 32, 0, 0, 0, 0, 5, 1, 5);
+        break;
+
+         case 2:
+            ene.playEnemy.load("data/img/blader.png", 32, 32, 0, 0, 0, 0, 4, 1, 4);
+        break;
+    }
     ene.playEnemy.setPosition(posx,posy);
+
+    ene.playEnemy.setFrameRange(12,13);
+    ene.playEnemy.setAnimRate(15);
     ene.playEnemy.setLooped(true);
     //ene.playEnemy.play();
-
 
 }

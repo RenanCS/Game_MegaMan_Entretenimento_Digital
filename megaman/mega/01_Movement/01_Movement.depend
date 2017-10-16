@@ -1866,7 +1866,7 @@
 
 1507509238 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\lib\cgf\include\pugixml\pugiconfig.hpp
 
-1507765370 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.h
+1507937529 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.h
 	<list>
 	<SFML/Audio.hpp>
 	"GameState.h"
@@ -1933,7 +1933,7 @@
 	"Sprite.h"
 	"InputManager.h"
 
-1507765344 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.cpp
+1507938642 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.cpp
 	<iostream>
 	<cmath>
 	"Game.h"
