@@ -1,19 +1,17 @@
 /*
  *  PlayState.cpp
  *  Normal "play" state
- *
- *  Created by Marcelo Cohen on 08/13.
- *  Copyright 2013 PUCRS. All rights reserved.
- *
  */
 
 #include <iostream>
 #include <cmath>
+#include <vector>
+#include <unistd.h>
+#include <tmx/MapLoader.h>
 #include "Game.h"
 #include "PlayState.h"
 #include "PauseState.h"
 #include "InputManager.h"
-#include <tmx/MapLoader.h>
 #include "SFML/Audio.hpp"
 
 PlayState PlayState::m_PlayState;
@@ -27,6 +25,13 @@ typedef struct coord {
 }coord;
 
 
+typedef struct shot_str {
+	bool friendly;
+	int dir;
+	cgf::Sprite sprite;
+}shot_str;
+
+
 typedef struct enemy {
     cgf::Sprite playEnemy;
 	int vida;
@@ -38,74 +43,49 @@ typedef struct enemy {
 
 }enemy;
 
+
 struct enemy enemies[5];
+std::vector<shot_str> shoots;
 int numEnemy = 5;
 
 
-void PlayState::init()
-{
+#pragma region EVENT_GAME
+
+void PlayState::init(){
     //Especifica altura do volume
     music.setVolume(50);
 
     //Desenha inimigo
     CreateEnemy();
 
-    //Posição inicial do Mega man
-    posx = 100;
-    posy = 285;
-    walking = false;
+    //Desenha Megaman
+    CreateMegaMan();
 
-    //Inicializa o Mega man
-    playSprite1.load("data/img/megaman.png", 32, 32, 0, 0, 0, 0, 3, 5, 14);
-    playSprite1.setPosition(posx,posy);
-    playSprite1.setFrameRange(12,13);
-    playSprite1.setAnimRate(15);
-    playSprite1.setLooped(true);
-    playSprite1.play();
+    //Configuração de controle
+    ControlSetting();
 
-    ////Desenha o mapa
+    //Desenha Mapa
     map = new tmx::MapLoader("data/maps");       // todos os mapas/tilesets ser�o lidos de data/maps
     map->Load("megaman-v2.tmx");
 
 
-    dirx = 0; // sprite direction: right (1), left (-1)
-    diry = 1; // down (1), up (-1)
-    last = 0;
-
-    im = cgf::InputManager::instance();
-
-    im->addKeyInput("left", sf::Keyboard::Left);
-    im->addKeyInput("right", sf::Keyboard::Right);
-    im->addKeyInput("up", sf::Keyboard::Up);
-    im->addKeyInput("down", sf::Keyboard::Down);
-    im->addKeyInput("quit", sf::Keyboard::Escape);
-    im->addKeyInput("shoot", sf::Keyboard::A);
-    im->addKeyInput("jump", sf::Keyboard::S);
-    im->addMouseInput("rightclick", sf::Mouse::Right);
-    im->addKeyInput("pause", sf::Keyboard::Return);
-    im->addKeyInput("zoomout", sf::Keyboard::Z);
-
 	cout << "PlayState: Init" << endl;
 }
 
-void PlayState::cleanup()
-{
+void PlayState::cleanup(){
      delete map;
 	cout << "PlayState: Clean" << endl;
 }
 
-void PlayState::pause()
-{
+void PlayState::pause(){
 	cout << "PlayState: Paused" << endl;
 }
 
-void PlayState::resume()
-{
+void PlayState::resume(){
 	cout << "PlayState: Resumed" << endl;
 }
 
-void PlayState::handleEvents(cgf::Game* game)
-{
+void PlayState::handleEvents(cgf::Game* game){
     sf::Event event;
     sf::View view = screen->getView();
 
@@ -125,8 +105,10 @@ void PlayState::handleEvents(cgf::Game* game)
         dirx = 1;
 
     if(im->testEvent("shoot")){
+        usleep(100000);
         shooting = true;
-        music.openFromFile("data/audio/12-BigEye.wav");
+        shoot();
+        music.openFromFile("data/audio/MegaBuster.wav");
         music.play();
     }
 
@@ -142,7 +124,7 @@ void PlayState::handleEvents(cgf::Game* game)
     }
 
     if(last != dirx && dirx != 0){
-        playSprite1.setMirror(dirx == -1);
+        megaman.setMirror(dirx == -1);
     }
 
     last = dirx;
@@ -164,7 +146,202 @@ void PlayState::handleEvents(cgf::Game* game)
 
 }
 
+sf::Uint16 PlayState::getCellFromMap(uint8_t layernum, float x, float y){
+    auto layers = map->GetLayers();
+    tmx::MapLayer& layer = layers[layernum];
+    sf::Vector2u mapsize = map->GetMapSize();
+    sf::Vector2u tilesize = map->GetMapTileSize();
+    mapsize.x /= tilesize.x;
+    mapsize.y /= tilesize.y;
+    int col = floor(x / tilesize.x);
+    int row = floor(y / tilesize.y);
+    return layer.tiles[row*mapsize.x + col].gid;
+}
+
+void PlayState::update(cgf::Game* game){
+
+    //Atualiza informações do mega man
+    UpdateMegaman(game);
+
+    //Configura direção e velocidade da bala
+    for (int s = 0; s < shoots.size(); s++){
+        shoots[s].sprite.move(shoots[s].dir * 5,0);
+    }
+
+    centerMapOnPlayer();
+}
+
+void PlayState::draw(cgf::Game* game){
+    screen = game->getScreen();
+
+    map->Draw(*screen);
+
+    screen->draw(megaman);
+
+    for (int s = 0; s < shoots.size(); s++){
+        screen->draw(shoots[s].sprite);
+    }
+
+    for (int i = 0; i < numEnemy; i++) {
+        screen->draw(enemies[i].playEnemy);
+	}
+
+}
+
+
+
+#pragma region INITIAL_SETTING
+
+void PlayState::ControlSetting(){
+
+    cout << "Configurando controles "  << endl;
+
+    im = cgf::InputManager::instance();
+
+    im->addKeyInput("left", sf::Keyboard::Left);
+    im->addKeyInput("right", sf::Keyboard::Right);
+    im->addKeyInput("up", sf::Keyboard::Up);
+    im->addKeyInput("down", sf::Keyboard::Down);
+    im->addKeyInput("quit", sf::Keyboard::Escape);
+    im->addKeyInput("shoot", sf::Keyboard::A);
+    im->addKeyInput("jump", sf::Keyboard::S);
+    im->addMouseInput("rightclick", sf::Mouse::Right);
+    im->addKeyInput("pause", sf::Keyboard::Return);
+    im->addKeyInput("zoomout", sf::Keyboard::Z);
+
+}
+
+void PlayState::CreateMegaMan(){
+
+    cout << "Criando Mega Man "  << endl;
+
+    //Direção do megaman
+    dirx = 0; // sprite direction: right (1), left (-1)
+    diry = 1; // down (1), up (-1)
+    last = 0;
+
+    //Posição inicial do megaman
+    posx = 100;
+    posy = 285;
+    walking = false;
+
+    //Inicializa o Mega man
+    megaman.load("data/img/megaman.png", 32, 32, 0, 0, 0, 0, 3, 5, 14);
+    megaman.setPosition(posx,posy);
+    megaman.setFrameRange(12,13);
+    megaman.setAnimRate(15);
+    megaman.setLooped(true);
+    megaman.play();
+}
+
+void PlayState::CreateEnemy(){
+
+    cout << "Criando Inimigos "  << endl;
+
+    for (int i = 0; i < numEnemy; i++) {
+			DrawEnemy(enemies[i], i);
+	}
+}
+
+void PlayState::DrawEnemy(struct enemy &ene, int i){
+
+    //Configura a posição dos inimigos
+    int posxEnemy =  100 * (i*2 + 1);
+    int posyEnemy = 305;
+
+    //Informa o ID do inimigo
+    ene.id = i;
+
+    //Seleciona o tipo de imagem
+    switch(i)
+    {
+        case 0:
+            ene.playEnemy.load("data/img/gutsman.png", 32, 32, 0, 0, 0, 0,7, 1, 7);
+        break;
+
+        case 1:
+            ene.playEnemy.load("data/img/met.png", 32, 32, 0, 0, 0, 0, 5, 1, 5);
+        break;
+
+         case 2:
+            ene.playEnemy.load("data/img/blader.png", 32, 32, 0, 0, 0, 0, 4, 1, 4);
+        break;
+    }
+
+    //Informa posição
+    ene.playEnemy.setPosition(posxEnemy,posyEnemy);
+    ene.playEnemy.setFrameRange(12,13);
+    ene.playEnemy.setAnimRate(15);
+    ene.playEnemy.setLooped(true);
+    //ene.playEnemy.play();
+
+}
+
+
+
+#pragma region ADDITIONAL_CONFIGURATION
+
+void PlayState::UpdateMegaman(cgf::Game* game){
+
+    //Obtem o ambiente
+    screen = game->getScreen();
+
+    //Configura pulo
+    jumpCount -= jumpCount > 0 ? 1 : 0;
+    walking = dirx != 0;
+
+    if(jumpCount > 0){
+        diry = -1;
+    } else {
+        diry = 1;
+    }
+
+    //Configura velocidade de corrida
+    megaman.setXspeed(dirx*150);
+    megaman.setYspeed(diry*250);
+
+    //Obtem o tile de colisão
+    sf::Uint16 tile = checkCollision(1, game, &megaman);
+    //cout << "Tile: " << tile << endl;
+
+    switch(tile){
+        case 21: //floor
+        break;
+        case 2: // ceiling
+        break;
+        case 1: // obstacle left, right
+        break;
+        case 58: // game over
+        break;
+    }
+
+    //Verifica se o player ainda pode pular
+    jumping = tile != 21;
+
+    setAnim();
+
+}
+
+void PlayState::shoot(){
+
+    float posxMM = megaman.getPosition().x;
+    //Cria uma struct da bela
+    shot_str shot;
+    //Seta imagem
+    shot.sprite.load("data/img/shot.png", 6, 6, 0, 0, 0,0, 1, 1,1);
+    //Informa posição, conforme localização do mega man
+    shot.sprite.setPosition(posxMM, megaman.getPosition().y + 15);
+    //Informa direção da bala
+    shot.dir = megaman.getMirror() == 0 ? 1 : -1;
+    //Informa quem atirou
+    shot.friendly = true;
+    //Adiciona no vetor de balas
+    shoots.push_back(shot);
+}
+
 void PlayState::setAnim(){
+
+    //Configura animação do mega man
     int currentAnim = 0;
 
     int w = walking ? 1 : 0;
@@ -185,35 +362,34 @@ void PlayState::setAnim(){
     currentAnim = state[w][j][s];
 
     if(lastAnim != currentAnim){
-        playSprite1.stop();
-       // cout << currentAnim << endl;
+        megaman.stop();
         switch(currentAnim){
             case 0:
-                playSprite1.play();
-                playSprite1.setFrameRange(12,13);
+                megaman.play();
+                megaman.setFrameRange(12,13);
                 break;
             case 1:
-                playSprite1.play();
-                playSprite1.setFrameRange(6,8);
+                megaman.play();
+                megaman.setFrameRange(6,8);
                 break;
             case 2:
-                playSprite1.setCurrentFrame(1);
+                megaman.setCurrentFrame(1);
                 break;
             case 3:
-                playSprite1.setCurrentFrame(3);
+                megaman.setCurrentFrame(3);
                 break;
             case 4:
-                playSprite1.setCurrentFrame(1);
+                megaman.setCurrentFrame(1);
                 break;
             case 5:
-                playSprite1.setCurrentFrame(4);
+                megaman.setCurrentFrame(4);
                 break;
             case 6:
-                playSprite1.play();
-                playSprite1.setFrameRange(9,11);
+                megaman.play();
+                megaman.setFrameRange(9,11);
                 break;
             case 7:
-                playSprite1.setCurrentFrame(4);
+                megaman.setCurrentFrame(4);
                 break;
         }
     }
@@ -221,15 +397,15 @@ void PlayState::setAnim(){
     lastAnim = currentAnim;
 }
 
+void PlayState::centerMapOnPlayer(){
 
-void PlayState::centerMapOnPlayer()
-{
     sf::View view = screen->getView();
     sf::Vector2u mapsize = map->GetMapSize();
     sf::Vector2f viewsize = view.getSize();
     viewsize.x /= 2;
     viewsize.y /= 2;
-    sf::Vector2f pos = playSprite1.getPosition();
+
+    sf::Vector2f pos = megaman.getPosition();
 
     float panX = viewsize.x; // minimum pan
     if(pos.x >= viewsize.x)
@@ -250,9 +426,7 @@ void PlayState::centerMapOnPlayer()
     screen->setView(view);
 }
 
-
-sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite* obj)
-{
+sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite* obj){
     int i, x1, x2, y1, y2;
     sf::Uint16 bump = 0;
 
@@ -439,121 +613,3 @@ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite
     return bump;
 }
 
-
-// Get a cell GID from the map (x and y in global coords)
-sf::Uint16 PlayState::getCellFromMap(uint8_t layernum, float x, float y)
-{
-    auto layers = map->GetLayers();
-    tmx::MapLayer& layer = layers[layernum];
-    sf::Vector2u mapsize = map->GetMapSize();
-    sf::Vector2u tilesize = map->GetMapTileSize();
-    mapsize.x /= tilesize.x;
-    mapsize.y /= tilesize.y;
-    int col = floor(x / tilesize.x);
-    int row = floor(y / tilesize.y);
-    return layer.tiles[row*mapsize.x + col].gid;
-}
-
-
-void PlayState::update(cgf::Game* game)
-{
-    screen = game->getScreen();
-
-    jumpCount -= jumpCount > 0 ? 1 : 0;
-    walking = dirx != 0;
-
-    if(jumpCount > 0){
-        diry = -1;
-    } else {
-        diry = 1;
-    }
-
-    playSprite1.setXspeed(dirx*150);
-    playSprite1.setYspeed(diry*250);
-
-    sf::Uint16 tile = checkCollision(1, game, &playSprite1);
-    cout << "Tile: " << tile << endl;
-
-
-    switch(tile){
-
-        case 21: //floor
-        break;
-        case 2: // ceiling
-        break;
-        case 1: // obstacle left, right
-        break;
-        case 58: // game over
-
-        break;
-
-
-    }
-
-    jumping = tile != 21;
-
-    setAnim();
-
-    //playSprite1.setPosition(x,y);
-    //playSprite1.update(game->getUpdateInterval());
-
-    centerMapOnPlayer();
-}
-
-
-void PlayState::draw(cgf::Game* game)
-{
-    screen = game->getScreen();
-
-    map->Draw(*screen);
-
-    screen->draw(playSprite1);
-
-    for (int i = 0; i < numEnemy; i++) {
-			screen->draw(enemies[i].playEnemy);
-	}
-
-}
-
-
-void PlayState::CreateEnemy(){
-
-    cout << "Inicializou montarInimigos "  << endl;
-
-    for (int i = 0; i < numEnemy; i++) {
-			DrawEnemy(enemies[i], i);
-	}
-}
-
-void PlayState::DrawEnemy(struct enemy &ene, int i){
-
-    cout << "Criando o inimigo " << i  << endl;
-
-    posx = 100 * (i + 1);
-    posy = 300;
-
-
-    ene.id = i;
-
-    switch(i)
-    {
-        case 0:
-            ene.playEnemy.load("data/img/gutsman.png", 32, 32, 0, 0, 0, 0,7, 1, 7);
-        break;
-
-        case 1:
-            ene.playEnemy.load("data/img/met.png", 32, 32, 0, 0, 0, 0, 5, 1, 5);
-        break;
-
-         case 2:
-            ene.playEnemy.load("data/img/blader.png", 32, 32, 0, 0, 0, 0, 4, 1, 4);
-        break;
-    }
-    ene.playEnemy.setPosition(posx,posy);
-
-    ene.playEnemy.setFrameRange(12,13);
-    ene.playEnemy.setAnimRate(15);
-    ene.playEnemy.setLooped(true);
-    //ene.playEnemy.play();
-
-}

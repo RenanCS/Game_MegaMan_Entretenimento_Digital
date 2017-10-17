@@ -15,6 +15,7 @@
 #include "Sprite.h"
 #include "InputManager.h"
 #include <tmx/MapLoader.h>
+#include <vector>
 
 
 class PlayState : public cgf::GameState
@@ -23,14 +24,18 @@ class PlayState : public cgf::GameState
 
     void init();
     void cleanup();
-
     void pause();
     void resume();
-
     void handleEvents(cgf::Game* game);
     void update(cgf::Game* game);
     void draw(cgf::Game* game);
+
     void CreateEnemy();
+    void CreateMegaMan();
+    void ControlSetting();
+    void CreateLayout();
+
+    void UpdateMegaman(cgf::Game* game);
     void DrawEnemy(struct enemy &ene, int i);
 
     // Implement Singleton Pattern
@@ -49,13 +54,15 @@ class PlayState : public cgf::GameState
 
     int dirx, diry, last, jumpCount, posx,posy, lastAnim;
     bool shooting, jumping, walking;
-    cgf::Sprite playSprite1;
+    cgf::Sprite megaman;
     sf::RenderWindow* screen;
     cgf::InputManager* im;
     tmx::MapLoader* map;
     sf::Music music;
 
     void setAnim();
+
+    void shoot();
 
     // Centers the camera on the player position
     void centerMapOnPlayer();

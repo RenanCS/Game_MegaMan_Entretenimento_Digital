@@ -1866,13 +1866,14 @@
 
 1507509238 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\lib\cgf\include\pugixml\pugiconfig.hpp
 
-1507937529 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.h
+1508210442 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.h
 	<list>
 	<SFML/Audio.hpp>
 	"GameState.h"
 	"Sprite.h"
 	"InputManager.h"
 	<tmx/MapLoader.h>
+	<vector>
 
 1507509238 c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\lib\cgf\include\tmx\maploader.h
 	<tmx/QuadTreeNode.h>
@@ -1904,7 +1905,7 @@
 	"Sprite.h"
 	"InputManager.h"
 
-1507509239 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\main.cpp
+1508208830 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\main.cpp
 	<iostream>
 	<cstdlib>
 	<string>
@@ -1933,13 +1934,15 @@
 	"Sprite.h"
 	"InputManager.h"
 
-1507938642 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.cpp
+1508206554 source:c:\users\renan\dropbox\pucrs\2017_02\entretenimento\t1\tf_1\game_megaman_entretenimento_digital\megaman\mega\01_movement\playstate.cpp
 	<iostream>
 	<cmath>
+	<vector>
+	<unistd.h>
+	<tmx/MapLoader.h>
 	"Game.h"
 	"PlayState.h"
 	"PauseState.h"
 	"InputManager.h"
-	<tmx/MapLoader.h>
 	"SFML/Audio.hpp"
 
