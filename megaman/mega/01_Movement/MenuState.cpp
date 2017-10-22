@@ -22,7 +22,7 @@ using namespace std;
 
 void MenuState::init()
 {
-    music.openFromFile("data/audio/GameStart.wav");
+    music.openFromFile("data/audio/StageSelect.wav");
     music.setVolume(25);
     music.play();
     music.setLoop(true);
@@ -64,8 +64,10 @@ void MenuState::handleEvents(cgf::Game* game)
 
             // key pressed
         case sf::Event::KeyPressed:
-            if(event.key.code == sf::Keyboard::Return)
+            if(event.key.code == sf::Keyboard::Return){
+                music.stop();
                 game->changeState(PlayState::instance());
+            }
 
             if(event.key.code == sf::Keyboard::Escape)
                 game->quit();

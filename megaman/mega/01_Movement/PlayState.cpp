@@ -33,30 +33,29 @@ typedef struct shot_str {
 
 
 typedef struct enemy {
-    cgf::Sprite playEnemy;
-	int vida;
-	int status; //0-vivo, 1-morto
-	int nivel;
-	int id;
-	struct coord pontos;
-	struct coord posInicial;
-
-}enemy;
+    cgf::Sprite sprite;
+    std::string name;
+    int id;
+	int health;
+	int damageDelay;
+} enemy;
 
 
-struct enemy enemies[5];
 std::vector<shot_str> shoots;
-int numEnemy = 5;
+std::vector<enemy> enemies;
 
 
 #pragma region EVENT_GAME
 
 void PlayState::init(){
-    //Especifica altura do volume
-    music.setVolume(50);
+    //Musica do cenario
+    music.openFromFile("data/audio/Stage.wav");
+    music.setVolume(25);
+    music.play();
+    music.setLoop(true);
 
-    //Desenha inimigo
-    CreateEnemy();
+    //Adiciona inimigos
+    CreateEnemies();
 
     //Desenha Megaman
     CreateMegaMan();
@@ -105,18 +104,15 @@ void PlayState::handleEvents(cgf::Game* game){
         dirx = 1;
 
     if(im->testEvent("shoot")){
-        usleep(100000);
         shooting = true;
         shoot();
-        music.openFromFile("data/audio/MegaBuster.wav");
-        music.play();
     }
 
     if(im->testEvent("jump")){
         if (!jumping){
 
-            music.openFromFile("data/audio/27-PointTally.wav");
-            music.play();
+            sfx.openFromFile("data/audio/27-PointTally.wav");
+            sfx.play();
 
             jumping = true;
             jumpCount = 10;
@@ -163,12 +159,66 @@ void PlayState::update(cgf::Game* game){
     //Atualiza informações do mega man
     UpdateMegaman(game);
 
+    std::vector<int> shotRemove;
+    std::vector<int> enemyRemove;
+
     //Configura direção e velocidade da bala
-    for (int s = 0; s < shoots.size(); s++){
-        shoots[s].sprite.move(shoots[s].dir * 5,0);
+    for (int i = 0; i < shoots.size(); i++){
+        shoots[i].sprite.move(shoots[i].dir * 7,0);
+        for (int j = 0; j < enemies.size(); j++){
+            if(shoots[i].sprite.circleCollision(enemies[j].sprite)){
+                if(enemies[j].damageDelay == 0){
+                    enemies[j].damageDelay = 5;
+                    enemies[j].health -= 1;
+                    if(enemies[j].health == 0){
+                        enemyRemove.push_back(j);
+                    }
+                }
+                shotRemove.push_back(i);
+            }
+        }
+
+        if(std::abs(megaman.getPosition().x - shoots[i].sprite.getPosition().x)  > 500){
+            shotRemove.push_back(i);
+        }
     }
 
+    // Remove inimigos e disparos
+    for(int i = 0; i < shotRemove.size(); i++ ){
+        shoots.erase(shoots.begin() + shotRemove[i]);
+    }
+    for(int i = 0; i < enemyRemove.size(); i++ ){
+        enemies.erase(enemies.begin() + enemyRemove[i]);
+    }
+
+    // Atualiza comportamento dos inimigos
+    UpdateEnemy(game);
+
     centerMapOnPlayer();
+}
+
+void PlayState::UpdateEnemy(cgf::Game* game){
+    int x, y;
+
+    for (int i = 0; i < enemies.size(); i++){
+        enemies[i].damageDelay -= enemies[i].damageDelay > 0 ? 1 : 0;
+        switch(enemies[i].id){
+             case 2:
+                x = enemies[i].sprite.getPosition().x > megaman.getPosition().x ? -1 : enemies[i].sprite.getPosition().x < megaman.getPosition().x ? 1 : 0;
+                y = 0;
+                //enemies[i].sprite.setXspeed(x * 50);
+                //enemies[i].sprite.setYspeed(y * 50);
+                enemies[i].sprite.move(x,y);
+            break;
+            case 3:
+                x = enemies[i].sprite.getPosition().x > megaman.getPosition().x ? -1 : enemies[i].sprite.getPosition().x < megaman.getPosition().x ? 1 : 0;
+                y = enemies[i].sprite.getPosition().y > megaman.getPosition().y ? -1 : enemies[i].sprite.getPosition().y < megaman.getPosition().y ? 1 : 0;
+                //enemies[i].sprite.setXspeed(x * 50);
+                //enemies[i].sprite.setYspeed(y * 50);
+                enemies[i].sprite.move(x,y);
+            break;
+        }
+    }
 }
 
 void PlayState::draw(cgf::Game* game){
@@ -182,12 +232,11 @@ void PlayState::draw(cgf::Game* game){
         screen->draw(shoots[s].sprite);
     }
 
-    for (int i = 0; i < numEnemy; i++) {
-        screen->draw(enemies[i].playEnemy);
+    for (int i = 0; i < enemies.size(); i++) {
+        screen->draw(enemies[i].sprite);
 	}
 
 }
-
 
 
 #pragma region INITIAL_SETTING
@@ -207,7 +256,7 @@ void PlayState::ControlSetting(){
     im->addKeyInput("jump", sf::Keyboard::S);
     im->addMouseInput("rightclick", sf::Mouse::Right);
     im->addKeyInput("pause", sf::Keyboard::Return);
-    im->addKeyInput("zoomout", sf::Keyboard::Z);
+    //im->addKeyInput("zoomout", sf::Keyboard::Z);
 
 }
 
@@ -234,47 +283,51 @@ void PlayState::CreateMegaMan(){
     megaman.play();
 }
 
-void PlayState::CreateEnemy(){
+void PlayState::CreateEnemies(){
 
     cout << "Criando Inimigos "  << endl;
 
-    for (int i = 0; i < numEnemy; i++) {
-			DrawEnemy(enemies[i], i);
-	}
+    AddEnemy(3, 300, 105);
+    AddEnemy(2, 200, 305);
 }
 
-void PlayState::DrawEnemy(struct enemy &ene, int i){
+void PlayState::AddEnemy(int id, int x, int y) {
 
-    //Configura a posição dos inimigos
-    int posxEnemy =  100 * (i*2 + 1);
-    int posyEnemy = 305;
-
-    //Informa o ID do inimigo
-    ene.id = i;
+    //Cria uma struct do inimigo
+    enemy ene;
+    ene.id = id;
+    ene.damageDelay = 0;
 
     //Seleciona o tipo de imagem
-    switch(i)
+    switch(id)
     {
-        case 0:
-            ene.playEnemy.load("data/img/gutsman.png", 32, 32, 0, 0, 0, 0,7, 1, 7);
-        break;
-
         case 1:
-            ene.playEnemy.load("data/img/met.png", 32, 32, 0, 0, 0, 0, 5, 1, 5);
+            ene.sprite.load("data/img/gutsman.png", 32, 32, 0, 0, 0, 0,7, 1, 7);
+            ene.health = 24;
+            ene.name = "gustsman";
         break;
 
-         case 2:
-            ene.playEnemy.load("data/img/blader.png", 32, 32, 0, 0, 0, 0, 4, 1, 4);
+        case 2:
+            ene.sprite.load("data/img/met.png", 32, 32, 0, 0, 0, 0, 5, 1, 5);
+            ene.health = 2;
+            ene.name = "met";
+        break;
+
+        case 3:
+            ene.sprite.load("data/img/blader.png", 32, 32, 0, 0, 0, 0, 4, 1, 4);
+            ene.health = 1;
+            ene.name = "blader";
         break;
     }
 
     //Informa posição
-    ene.playEnemy.setPosition(posxEnemy,posyEnemy);
-    ene.playEnemy.setFrameRange(12,13);
-    ene.playEnemy.setAnimRate(15);
-    ene.playEnemy.setLooped(true);
-    //ene.playEnemy.play();
+    ene.sprite.setPosition(x,y);
+    ene.sprite.setAnimRate(15);
+    ene.sprite.setLooped(true);
+    ene.sprite.setFrameRange(1,2);
+    ene.sprite.play();
 
+    enemies.push_back(ene);
 }
 
 
@@ -285,6 +338,9 @@ void PlayState::UpdateMegaman(cgf::Game* game){
 
     //Obtem o ambiente
     screen = game->getScreen();
+
+    //Delay do tiro
+    shootDelay -= shootDelay > 0 ? 1 : 0;
 
     //Configura pulo
     jumpCount -= jumpCount > 0 ? 1 : 0;
@@ -324,19 +380,28 @@ void PlayState::UpdateMegaman(cgf::Game* game){
 
 void PlayState::shoot(){
 
-    float posxMM = megaman.getPosition().x;
-    //Cria uma struct da bela
-    shot_str shot;
-    //Seta imagem
-    shot.sprite.load("data/img/shot.png", 6, 6, 0, 0, 0,0, 1, 1,1);
-    //Informa posição, conforme localização do mega man
-    shot.sprite.setPosition(posxMM, megaman.getPosition().y + 15);
-    //Informa direção da bala
-    shot.dir = megaman.getMirror() == 0 ? 1 : -1;
-    //Informa quem atirou
-    shot.friendly = true;
-    //Adiciona no vetor de balas
-    shoots.push_back(shot);
+    if(shootDelay == 0) {
+        //Delay entre disparos
+        shootDelay = 5;
+        //Som do disparo
+        sfx.openFromFile("data/audio/MegaBuster.wav");
+        sfx.play();
+        //Cria uma struct da bela
+        shot_str shot;
+        //Configura srpite
+        shot.sprite.load("data/img/shot.png", 6, 6, 0, 0, 0,0, 1, 1,1);
+        //Informa posição, conforme localização do mega man
+        float posxMM = megaman.getPosition().x;
+        float posyMM = megaman.getPosition().y + 16;
+        posxMM  = megaman.getMirror() == 0 ? posxMM + 30 : posxMM - 5;
+        shot.sprite.setPosition(posxMM, posyMM);
+        //Informa direção da bala
+        shot.dir = megaman.getMirror() == 0 ? 1 : -1;
+        //Informa quem atirou
+        shot.friendly = true;
+        //Adiciona no vetor de balas
+        shoots.push_back(shot);
+    }
 }
 
 void PlayState::setAnim(){

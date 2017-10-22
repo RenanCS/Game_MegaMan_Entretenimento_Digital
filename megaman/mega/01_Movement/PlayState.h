@@ -30,13 +30,14 @@ class PlayState : public cgf::GameState
     void update(cgf::Game* game);
     void draw(cgf::Game* game);
 
-    void CreateEnemy();
+    void CreateEnemies();
     void CreateMegaMan();
     void ControlSetting();
     void CreateLayout();
 
     void UpdateMegaman(cgf::Game* game);
-    void DrawEnemy(struct enemy &ene, int i);
+    void AddEnemy(int id, int x, int y);
+    void UpdateEnemy(cgf::Game* game);
 
     // Implement Singleton Pattern
     static PlayState* instance()
@@ -52,13 +53,14 @@ class PlayState : public cgf::GameState
 
     static PlayState m_PlayState;
 
-    int dirx, diry, last, jumpCount, posx,posy, lastAnim;
+    int dirx, diry, last, jumpCount, posx,posy, lastAnim, shootDelay;
     bool shooting, jumping, walking;
     cgf::Sprite megaman;
     sf::RenderWindow* screen;
     cgf::InputManager* im;
     tmx::MapLoader* map;
     sf::Music music;
+    sf::Music sfx;
 
     void setAnim();
 
