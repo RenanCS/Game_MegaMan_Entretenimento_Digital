@@ -45,6 +45,7 @@ class PlayState : public cgf::GameState
 
     void SetMegamanAnim();
     void Shoot();
+    void Clear();
     void Died();
 
     // Implement Singleton Pattern
@@ -61,7 +62,7 @@ class PlayState : public cgf::GameState
 
     static PlayState m_PlayState;
 
-    int dirx, diry, last, jumpCount, posx,posy, lastAnim, shootDelay, damageDelay, score, alive;
+    int dirx, diry, last, jumpCount, posx,posy, lastAnim, shootDelay, damageDelay, score, alive, gameoverCount;
     bool shooting, jumping, walking;
     cgf::Sprite megaman, hpbar;
     std::vector<cgf::Sprite> hpbartiles;

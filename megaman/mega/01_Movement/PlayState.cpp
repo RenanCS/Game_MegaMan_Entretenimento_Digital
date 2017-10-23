@@ -9,6 +9,7 @@
  #include <unistd.h>
  #include <tmx/MapLoader.h>
  #include "Game.h"
+ #include "MenuState.h"
  #include "PlayState.h"
  #include "PauseState.h"
 #include "InputManager.h"
@@ -240,8 +241,8 @@ sf::Uint16 PlayState::getCellFromMap(uint8_t layernum, float x, float y){
 
 void PlayState::update(cgf::Game* game){
 
-    //Atualiza informações do mega man
     if(alive){
+        //Atualiza informações do mega man
         UpdateMegaman(game);
 
         //Configura direção e colisão dos disparos
@@ -249,6 +250,12 @@ void PlayState::update(cgf::Game* game){
 
         // Atualiza comportamento dos inimigos
         UpdateEnemy(game);
+    } else {
+        gameoverCount -= 1;
+        if(gameoverCount <= 0){
+            Clear();
+            game->changeState(MenuState::instance());
+        }
     }
 
     // Atualiza score
@@ -263,34 +270,34 @@ void PlayState::UpdateMegaman(cgf::Game* game){
 
     if((hpbartiles.size() == 0 && damageDelay == 50) || megaman.getPosition().y > 400){
         Died();
-    } else {        
+    } else {
         //Obtem o ambiente
         screen = game->getScreen();
-        
+
         //Delay do tiro
         shootDelay -= shootDelay > 0 ? 1 : 0;
-        
+
         //Configura pulo
         jumpCount -= jumpCount > 0 ? 1 : 0;
         damageDelay -= damageDelay > 0 ? 1 : 0;
         walking = dirx != 0;
-        
+
         if(jumpCount > 0){
             diry = -1;
         } else {
             diry = 1;
         }
-        
+
         megaman.setVisible(damageDelay % 2 == 0);
-        
+
         //Configura velocidade de corrida
         megaman.setXspeed(dirx*150);
         megaman.setYspeed(diry*250);
-        
+
         //Obtem o tile de colisão
         sf::Uint16 tile = checkCollision(1, game, &megaman);
         //cout << "Tile: " << tile << endl;
-        
+
         switch(tile){
             case 21: //floor
             break;
@@ -301,21 +308,28 @@ void PlayState::UpdateMegaman(cgf::Game* game){
             case 58: // game over
             break;
         }
-        
+
         jumping = tile != 21;
-        
+
         SetMegamanAnim();
-        
+
     }
 }
 
 void PlayState::Died(){
     alive = false;
+    gameoverCount = 100;
     music.openFromFile("data/audio/GameOver.ogg");
     music.setLoop(false);
     music.play();
     sfx.openFromFile("data/audio/Die.wav");
     sfx.play();
+}
+
+void PlayState::Clear(){
+    hpbartiles.clear();
+    enemies.clear();
+    shoots.clear();
 }
 
 void PlayState::SetMegamanAnim(){
@@ -527,18 +541,17 @@ void PlayState::CreateMegaMan(){
 }
 
 void PlayState::InitHpBar(){
-//Inicializa o Mega man
-hpbar.load("data/img/hp_bar_background.png", 8, 42, 0, 0, 0, 0, 1, 1, 1);
-hpbar.scale(2,2);
-hpbar.setPosition(25,75);
+    //Inicializa o Mega man
+    hpbar.load("data/img/hp_bar_background.png", 16, 84, 0, 0, 0, 0, 1, 1, 1);
+    //hpbar.scale(1,1);
+    //hpbar.scale(2,2);
+    hpbar.setPosition(25,75);
 
     for(int i = 0; i < 5; i++){
         cgf::Sprite tile;
-        tile.load("data/img/hp_bar_tile.png", 6, 1, 0, 0, 0, 0, 1, 1, 1);
-        tile.scale(2,2);
+        tile.load("data/img/hp_bar_tile.png", 12, 2, 0, 0, 0, 0, 1, 1, 1);
         hpbartiles.push_back(tile);
     }
-
 }
 
 void PlayState::CreateEnemies(){

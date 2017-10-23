@@ -27,7 +27,6 @@ void MenuState::init()
     music.play();
     music.setLoop(true);
 
-
     menuSprite.load("data/img/capa.png"); // load menu state bitmap
     cout << "MenuState Init Successful" << endl;
 }
@@ -91,6 +90,11 @@ void MenuState::handleEvents(cgf::Game* game)
 
 void MenuState::update(cgf::Game* game)
 {
+    sf::RenderWindow* screen = game->getScreen();
+    sf::View view = screen->getView();
+    sf::Vector2f center(315,196);
+    view.setCenter(center);
+    screen->setView(view);
 }
 
 void MenuState::draw(cgf::Game *game)
