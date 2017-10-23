@@ -39,6 +39,9 @@ class PlayState : public cgf::GameState
     void AddEnemy(int id, int x, int y);
     void UpdateEnemy(cgf::Game* game);
     void UpdateShoots(cgf::Game* game);
+    void InitScore();
+    void InitSound();
+    void InitHpBar();
 
     void SetMegamanAnim();
     void Shoot();
@@ -57,9 +60,10 @@ class PlayState : public cgf::GameState
 
     static PlayState m_PlayState;
 
-    int dirx, diry, last, jumpCount, posx,posy, lastAnim, shootDelay, score;
+    int dirx, diry, last, jumpCount, posx,posy, lastAnim, shootDelay, damageDelay, score;
     bool shooting, jumping, walking;
-    cgf::Sprite megaman;
+    cgf::Sprite megaman, hpbar;
+    std::vector<cgf::Sprite> hpbartiles;
     sf::RenderWindow* screen;
     cgf::InputManager* im;
     tmx::MapLoader* map;

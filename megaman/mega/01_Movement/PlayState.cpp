@@ -39,44 +39,29 @@
  std::vector<shot_str> shoots;
  std::vector<enemy> enemies;
 
-
  #pragma region EVENT_GAME
 
- void PlayState::init(){
-     //Musica do cenario
-     music.openFromFile("data/audio/Stage.wav");
-     music.setVolume(25);
-     music.play();
-     music.setLoop(true);
+void PlayState::init(){
+    //Musica e sfx do cenario
+    InitSound();
 
-     //Pontuação
-     if (!font.loadFromFile("data/fonts/Altebro.ttf"))
-     {
-         cout << "Cannot load arial.ttf font!" << endl;
-         exit(1);
-     }
-     scoreText.setFont(font);
-     scoreText.setString(L"Score:");
-     scoreText.setCharacterSize(36); // in pixels
-     scoreText.setColor(sf::Color::White);
-     scoreText.setStyle(sf::Text::Bold);
-     score = 0;
+    //Pontuação
+    InitScore();
 
-     //Adiciona inimigos
-     CreateEnemies();
+    //Adiciona inimigos
+    CreateEnemies();
 
-     //Desenha Megaman
-     CreateMegaMan();
+    //Desenha Megaman
+    CreateMegaMan();
 
-     //Configuração de controle
-     ControlSetting();
+    //Configuração de controle
+    ControlSetting();
 
-     //Desenha Mapa
-     map = new tmx::MapLoader("data/maps");       // todos os mapas/tilesets ser�o lidos de data/maps
-     map->Load("megaman-v2.tmx");
+    //Desenha Mapa
+    map = new tmx::MapLoader("data/maps");       // todos os mapas/tilesets ser�o lidos de data/maps
+    map->Load("megaman-v2.tmx");
 
-
-     cout << "PlayState: Init" << endl;
+    cout << "PlayState: Init" << endl;
  }
 
  void PlayState::cleanup(){
@@ -149,6 +134,28 @@
      }
 
  }
+
+void PlayState::InitSound(){
+    music.openFromFile("data/audio/Stage.wav");
+    music.setVolume(50);
+    music.play();
+    music.setLoop(true);
+    sfx.setVolume(50);
+}
+
+void PlayState::InitScore(){
+    if (!font.loadFromFile("data/fonts/Altebro.ttf"))
+    {
+        cout << "Cannot load arial.ttf font!" << endl;
+        exit(1);
+    }
+    scoreText.setFont(font);
+    scoreText.setString(L"Score:");
+    scoreText.setCharacterSize(36); // in pixels
+    scoreText.setColor(sf::Color::White);
+    scoreText.setStyle(sf::Text::Bold);
+    score = 0;
+}
 
   void PlayState::AddEnemy(int id, int x, int y) {
 
@@ -260,6 +267,7 @@
 
      //Configura pulo
      jumpCount -= jumpCount > 0 ? 1 : 0;
+     damageDelay -= damageDelay > 0 ? 1 : 0;
      walking = dirx != 0;
 
      if(jumpCount > 0){
@@ -267,6 +275,8 @@
      } else {
          diry = 1;
      }
+
+     megaman.setVisible(damageDelay % 2 == 0);
 
      //Configura velocidade de corrida
      megaman.setXspeed(dirx*150);
@@ -295,63 +305,65 @@
 
  }
 
- void PlayState::SetMegamanAnim(){
+void PlayState::SetMegamanAnim(){
 
-     //Configura animação do mega man
-     int currentAnim = 0;
+    //Configura animação do mega man
+    int currentAnim = 0;
 
-     int w = walking ? 1 : 0;
-     int j = jumping ? 1 : 0;
-     int s = shooting ? 1 : 0;
+    int w = walking ? 1 : 0;
+    int j = jumping ? 1 : 0;
+    int s = shooting ? 1 : 0;
 
-     int state[2][2][2] = {{{0,1},{2,3}},{{4,5},{6,7}}};
+    int state[2][2][2] = {{{0,1},{2,3}},{{4,5},{6,7}}};
 
-     state[0][0][0] = 0;
-     state[1][0][0] = 1;
-     state[0][1][0] = 2;
-     state[0][0][1] = 3;
-     state[1][1][0] = 4;
-     state[0][1][1] = 5;
-     state[1][0][1] = 6;
-     state[1][1][1] = 7;
+    state[0][0][0] = 0;
+    state[1][0][0] = 1;
+    state[0][1][0] = 2;
+    state[0][0][1] = 3;
+    state[1][1][0] = 4;
+    state[0][1][1] = 5;
+    state[1][0][1] = 6;
+    state[1][1][1] = 7;
 
-     currentAnim = state[w][j][s];
+    currentAnim = state[w][j][s];
 
-     if(lastAnim != currentAnim){
-         megaman.stop();
-         switch(currentAnim){
-             case 0:
-                 megaman.play();
-                 megaman.setFrameRange(12,13);
-                 break;
-             case 1:
-                 megaman.play();
-                 megaman.setFrameRange(6,8);
-                 break;
-             case 2:
-                 megaman.setCurrentFrame(1);
-                 break;
-             case 3:
-                 megaman.setCurrentFrame(3);
-                 break;
-             case 4:
-                 megaman.setCurrentFrame(1);
-                 break;
-             case 5:
-                 megaman.setCurrentFrame(4);
-                 break;
-             case 6:
-                 megaman.play();
-                 megaman.setFrameRange(9,11);
-                 break;
-             case 7:
-                 megaman.setCurrentFrame(4);
-                 break;
-         }
-     }
+    if(lastAnim != currentAnim){
+        megaman.setAnimRate(15);
+        megaman.stop();
+        switch(currentAnim){
+            case 0:
+                megaman.play();
+                megaman.setFrameRange(12,13);
+                megaman.setAnimRate(5);
+                break;
+            case 1:
+                megaman.play();
+                megaman.setFrameRange(6,8);
+                break;
+            case 2:
+                megaman.setCurrentFrame(1);
+                break;
+            case 3:
+                megaman.setCurrentFrame(3);
+                break;
+            case 4:
+                megaman.setCurrentFrame(1);
+                break;
+            case 5:
+                megaman.setCurrentFrame(4);
+                break;
+            case 6:
+                megaman.play();
+                megaman.setFrameRange(9,11);
+                break;
+            case 7:
+                megaman.setCurrentFrame(4);
+                break;
+        }
+    }
 
-     lastAnim = currentAnim;
- }
+    lastAnim = currentAnim;
+}
 
  void PlayState::UpdateShoots(cgf::Game* game){
      std::vector<int> shotRemove;
@@ -386,57 +398,71 @@
 
      for(int i = 0; i < enemyRemove.size(); i++ ){
          enemies.erase(enemies.begin() + enemyRemove[i]);
+         sfx.openFromFile("data/audio/Damage.wav");
+         sfx.play();
      }
  }
 
- void PlayState::UpdateEnemy(cgf::Game* game){
-     int x, y;
-     sf::Uint16 tile;
+void PlayState::UpdateEnemy(cgf::Game* game){
+    int x, y;
+    sf::Uint16 tile;
 
-     for (int i = 0; i < enemies.size(); i++){
-         enemies[i].damageDelay -= enemies[i].damageDelay > 0 ? 1 : 0;
-         switch(enemies[i].id){
-              case 2:
-                 x = enemies[i].sprite.getPosition().x > megaman.getPosition().x ? -1 : enemies[i].sprite.getPosition().x < megaman.getPosition().x ? 1 : 0;
-                 y = enemies[i].sprite.getPosition().y < 305 ? 1 : 0;
-                 enemies[i].sprite.setXspeed(x * 25);
-                 enemies[i].sprite.setYspeed(y * 75);
-                 /*tile = checkCollision(1, game, &enemies[i].sprite);
-                 if(tile == 21){
-                    enemies[i].sprite.move(0, -2);
-                 }*/
-                 //enemies[i].sprite.move(x,y);
-             break;
-             case 3:
-                 x = enemies[i].sprite.getPosition().x > megaman.getPosition().x ? -1 : enemies[i].sprite.getPosition().x < megaman.getPosition().x ? 1 : 0;
-                 y = enemies[i].sprite.getPosition().y > megaman.getPosition().y ? -1 : enemies[i].sprite.getPosition().y < megaman.getPosition().y ? 1 : 0;
-                 enemies[i].sprite.setXspeed(x * 50);
-                 enemies[i].sprite.setYspeed(y * 50);
-                 //enemies[i].sprite.move(x,y);
-             break;
-         }
-         enemies[i].sprite.update(game->getUpdateInterval());
-     }
- }
+    for (int i = 0; i < enemies.size(); i++){
+        enemies[i].damageDelay -= enemies[i].damageDelay > 0 ? 1 : 0;
+        switch(enemies[i].id){
+            case 2:
+                x = enemies[i].sprite.getPosition().x > megaman.getPosition().x ? -1 : enemies[i].sprite.getPosition().x < megaman.getPosition().x ? 1 : 0;
+                y = enemies[i].sprite.getPosition().y < 305 ? 1 : 0;
+                enemies[i].sprite.setXspeed(x * 25);
+                enemies[i].sprite.setYspeed(y * 75);
+                /*tile = checkCollision(1, game, &enemies[i].sprite);
+                if(tile == 21){
+                enemies[i].sprite.move(0, -2);
+                }*/
+                //enemies[i].sprite.move(x,y);
+            break;
+            case 3:
+                x = enemies[i].sprite.getPosition().x > megaman.getPosition().x ? -1 : enemies[i].sprite.getPosition().x < megaman.getPosition().x ? 1 : 0;
+                y = enemies[i].sprite.getPosition().y > megaman.getPosition().y ? -1 : enemies[i].sprite.getPosition().y < megaman.getPosition().y ? 1 : 0;
+                enemies[i].sprite.setXspeed(x * 50);
+                enemies[i].sprite.setYspeed(y * 50);
+                //enemies[i].sprite.move(x,y);
+            break;
+        }
+        if(damageDelay == 0 && enemies[i].sprite.circleCollision(megaman)){
+            if(hpbartiles.size() > 0){
+                sfx.openFromFile("data/audio/Damage.wav");
+                sfx.play();
+                hpbartiles.pop_back();
+                damageDelay = 50;
+            }
+        }
 
- void PlayState::draw(cgf::Game* game){
-     screen = game->getScreen();
+        enemies[i].sprite.update(game->getUpdateInterval());
+    }
+}
 
-     map->Draw(*screen);
+void PlayState::draw(cgf::Game* game){
+    screen = game->getScreen();
 
-     screen->draw(megaman);
+    map->Draw(*screen);
 
-     for (int i = 0; i < shoots.size(); i++){
-         screen->draw(shoots[i].sprite);
-     }
+    screen->draw(megaman);
 
-     for (int i = 0; i < enemies.size(); i++) {
-         screen->draw(enemies[i].sprite);
-     }
+    for (int i = 0; i < shoots.size(); i++){
+        screen->draw(shoots[i].sprite);
+    }
 
-     screen->draw(scoreText);
+    for (int i = 0; i < enemies.size(); i++) {
+        screen->draw(enemies[i].sprite);
+    }
 
- }
+    screen->draw(scoreText);
+    screen->draw(hpbar);
+    for (int i = 0; i < hpbartiles.size(); i++) {
+        screen->draw(hpbartiles[i]);
+    }
+}
 
  #pragma region INITIAL_SETTING
 
@@ -480,6 +506,24 @@
      megaman.setLooped(true);
      megaman.setFrameRange(12,13);
      megaman.play();
+
+     damageDelay = 0;
+     InitHpBar();
+ }
+
+ void PlayState::InitHpBar(){
+    //Inicializa o Mega man
+    hpbar.load("data/img/hp_bar_background.png", 8, 42, 0, 0, 0, 0, 1, 1, 1);
+    hpbar.scale(2,2);
+    hpbar.setPosition(25,75);
+
+    for(int i = 0; i < 20; i++){
+        cgf::Sprite tile;
+        tile.load("data/img/hp_bar_tile.png", 6, 1, 0, 0, 0, 0, 1, 1, 1);
+        tile.scale(2,2);
+        hpbartiles.push_back(tile);
+    }
+
  }
 
  void PlayState::CreateEnemies(){
@@ -523,7 +567,15 @@
      view.setCenter(center);
      screen->setView(view);
 
+     // set score position
      scoreText.setPosition(panX - 100, panY - 200);
+
+     // set hp bar position
+     hpbar.setPosition(panX - 275, panY - 150);
+
+    for(int i = 0; i < hpbartiles.size(); i++){
+        hpbartiles[i].setPosition(hpbar.getPosition().x + 2, hpbar.getPosition().y + 79 - i*4);
+    }
  }
 
  sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite* obj){

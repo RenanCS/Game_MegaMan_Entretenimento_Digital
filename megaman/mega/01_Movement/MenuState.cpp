@@ -23,7 +23,7 @@ using namespace std;
 void MenuState::init()
 {
     music.openFromFile("data/audio/StageSelect.wav");
-    music.setVolume(25);
+    music.setVolume(50);
     music.play();
     music.setLoop(true);
 
