@@ -38,6 +38,10 @@ class PlayState : public cgf::GameState
     void UpdateMegaman(cgf::Game* game);
     void AddEnemy(int id, int x, int y);
     void UpdateEnemy(cgf::Game* game);
+    void UpdateShoots(cgf::Game* game);
+
+    void SetMegamanAnim();
+    void Shoot();
 
     // Implement Singleton Pattern
     static PlayState* instance()
@@ -53,7 +57,7 @@ class PlayState : public cgf::GameState
 
     static PlayState m_PlayState;
 
-    int dirx, diry, last, jumpCount, posx,posy, lastAnim, shootDelay;
+    int dirx, diry, last, jumpCount, posx,posy, lastAnim, shootDelay, score;
     bool shooting, jumping, walking;
     cgf::Sprite megaman;
     sf::RenderWindow* screen;
@@ -61,10 +65,8 @@ class PlayState : public cgf::GameState
     tmx::MapLoader* map;
     sf::Music music;
     sf::Music sfx;
-
-    void setAnim();
-
-    void shoot();
+    sf::Font font;
+    sf::Text scoreText;
 
     // Centers the camera on the player position
     void centerMapOnPlayer();
