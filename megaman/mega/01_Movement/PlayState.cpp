@@ -136,7 +136,7 @@ void PlayState::init(){
  }
 
 void PlayState::InitSound(){
-    music.openFromFile("data/audio/Stage.wav");
+    music.openFromFile("data/audio/Stage2.ogg");
     music.setVolume(50);
     music.play();
     music.setLoop(true);
