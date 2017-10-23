@@ -239,6 +239,13 @@ sf::Uint16 PlayState::getCellFromMap(uint8_t layernum, float x, float y){
     return layer.tiles[row*mapsize.x + col].gid;
 }
 
+
+std::string to_zero_lead(const int value, const unsigned precision){
+     std::ostringstream oss;
+     oss << std::setw(precision) << std::setfill('0') << value;
+     return oss.str();
+}
+
 void PlayState::update(cgf::Game* game){
 
     if(alive){
@@ -259,8 +266,9 @@ void PlayState::update(cgf::Game* game){
     }
 
     // Atualiza score
+
     std::stringstream str;
-    str << "Score: " << score;
+    str << "Score: " << to_zero_lead(score, 5);
     scoreText.setString(str.str());
 
     centerMapOnPlayer();
