@@ -11,35 +11,35 @@
  #include "Game.h"
  #include "PlayState.h"
  #include "PauseState.h"
- #include "InputManager.h"
- #include "SFML/Audio.hpp"
+#include "InputManager.h"
+#include "SFML/Audio.hpp"
 
- PlayState PlayState::m_PlayState;
+PlayState PlayState::m_PlayState;
 
- using namespace std;
+using namespace std;
 
- /* Global variables */
- typedef struct shot_str {
-     bool friendly;
-     int dir;
-     cgf::Sprite sprite;
- }shot_str;
-
-
- typedef struct enemy {
-     cgf::Sprite sprite;
-     std::string name;
-     int id;
-     int health;
-     int damageDelay;
-     int score;
- } enemy;
+/* Global variables */
+typedef struct shot_str {
+    bool friendly;
+    int dir;
+    cgf::Sprite sprite;
+}shot_str;
 
 
- std::vector<shot_str> shoots;
- std::vector<enemy> enemies;
+typedef struct enemy {
+    cgf::Sprite sprite;
+    std::string name;
+    int id;
+    int health;
+    int damageDelay;
+    int score;
+} enemy;
 
- #pragma region EVENT_GAME
+
+std::vector<shot_str> shoots;
+std::vector<enemy> enemies;
+
+#pragma region EVENT_GAME
 
 void PlayState::init(){
     //Musica e sfx do cenario
@@ -62,78 +62,78 @@ void PlayState::init(){
     map->Load("megaman-v2.tmx");
 
     cout << "PlayState: Init" << endl;
- }
+}
 
- void PlayState::cleanup(){
-      delete map;
-     cout << "PlayState: Clean" << endl;
- }
+void PlayState::cleanup(){
+    delete map;
+    cout << "PlayState: Clean" << endl;
+}
 
- void PlayState::pause(){
-     cout << "PlayState: Paused" << endl;
- }
+void PlayState::pause(){
+    cout << "PlayState: Paused" << endl;
+}
 
- void PlayState::resume(){
-     cout << "PlayState: Resumed" << endl;
- }
+void PlayState::resume(){
+    cout << "PlayState: Resumed" << endl;
+}
 
- void PlayState::handleEvents(cgf::Game* game){
-     sf::Event event;
-     sf::View view = screen->getView();
+void PlayState::handleEvents(cgf::Game* game){
+    sf::Event event;
+    sf::View view = screen->getView();
 
-     while (screen->pollEvent(event))
-     {
-         if(event.type == sf::Event::Closed)
-             game->quit();
-     }
+    while (screen->pollEvent(event))
+    {
+        if(event.type == sf::Event::Closed)
+            game->quit();
+    }
 
-     dirx = diry = 0;
-     shooting = false;
+    dirx = diry = 0;
+    shooting = false;
 
-     if(im->testEvent("left"))
-         dirx = -1;
+    if(im->testEvent("left"))
+        dirx = -1;
 
-     if(im->testEvent("right"))
-         dirx = 1;
+    if(im->testEvent("right"))
+        dirx = 1;
 
-     if(im->testEvent("shoot")){
-         shooting = true;
-         Shoot();
-     }
+    if(im->testEvent("shoot")){
+        shooting = true;
+        Shoot();
+    }
 
-     if(im->testEvent("jump")){
-         if (!jumping){
+    if(im->testEvent("jump")){
+        if (!jumping){
 
-             sfx.openFromFile("data/audio/27-PointTally.wav");
-             sfx.play();
+            sfx.openFromFile("data/audio/27-PointTally.wav");
+            sfx.play();
 
-             jumping = true;
-             jumpCount = 10;
-         }
-     }
+            jumping = true;
+            jumpCount = 10;
+        }
+    }
 
-     if(last != dirx && dirx != 0){
-         megaman.setMirror(dirx == -1);
-     }
+    if(last != dirx && dirx != 0){
+        megaman.setMirror(dirx == -1);
+    }
 
-     last = dirx;
+    last = dirx;
 
-     if(im->testEvent("quit") || im->testEvent("rightclick"))
-         game->quit();
+    if(im->testEvent("quit") || im->testEvent("rightclick"))
+        game->quit();
 
-     if(im->testEvent("stats"))
-         game->toggleStats();
+    if(im->testEvent("stats"))
+        game->toggleStats();
 
-     if(im->testEvent("return"))
-         game->pushState(PauseState::instance());
+    if(im->testEvent("return"))
+        game->pushState(PauseState::instance());
 
-     if(im->testEvent("zoomout"))
-     {
-         view.zoom(0.99);
-         screen->setView(view);
-     }
+    if(im->testEvent("zoomout"))
+    {
+        view.zoom(0.99);
+        screen->setView(view);
+    }
 
- }
+}
 
 void PlayState::InitSound(){
     music.openFromFile("data/audio/Stage.ogg");
@@ -157,153 +157,166 @@ void PlayState::InitScore(){
     score = 0;
 }
 
-  void PlayState::AddEnemy(int id, int x, int y) {
+void PlayState::AddEnemy(int id, int x, int y) {
 
-     //Cria uma struct do inimigo
-     enemy ene;
-     ene.id = id;
-     ene.damageDelay = 0;
+    //Cria uma struct do inimigo
+    enemy ene;
+    ene.id = id;
+    ene.damageDelay = 0;
 
-     //Seleciona o tipo de imagem
-     switch(id)
-     {
-         case 1:
-             ene.sprite.load("data/img/gutsman.png", 32, 32, 0, 0, 0, 0,7, 1, 7);
-             ene.health = 24;
-             ene.score = 5000;
-             ene.name = "gustsman";
-         break;
+    //Seleciona o tipo de imagem
+    switch(id)
+    {
+        case 1:
+            ene.sprite.load("data/img/gutsman.png", 32, 32, 0, 0, 0, 0,7, 1, 7);
+            ene.health = 24;
+            ene.score = 5000;
+            ene.name = "gustsman";
+        break;
 
-         case 2:
-             ene.sprite.load("data/img/met.png", 32, 32, 0, 0, 0, 0, 5, 1, 5);
-             ene.sprite.setFrameRange(2,4);
-             ene.health = 2;
-             ene.score = 500;
-             ene.name = "met";
-         break;
+        case 2:
+            ene.sprite.load("data/img/met.png", 32, 32, 0, 0, 0, 0, 5, 1, 5);
+            ene.sprite.setFrameRange(2,4);
+            ene.health = 2;
+            ene.score = 500;
+            ene.name = "met";
+        break;
 
-         case 3:
-             ene.sprite.load("data/img/blader.png", 32, 32, 0, 0, 0, 0, 4, 1, 4);
-             ene.sprite.setFrameRange(0,1);
-             ene.health = 1;
-             ene.score = 500;
-             ene.name = "blader";
-         break;
-     }
+        case 3:
+            ene.sprite.load("data/img/blader.png", 32, 32, 0, 0, 0, 0, 4, 1, 4);
+            ene.sprite.setFrameRange(0,1);
+            ene.health = 1;
+            ene.score = 500;
+            ene.name = "blader";
+        break;
+    }
 
-     //Informa posição
-     ene.sprite.setPosition(x,y);
-     ene.sprite.setAnimRate(15);
-     ene.sprite.setLooped(true);
-     ene.sprite.play();
+    //Informa posição
+    ene.sprite.setPosition(x,y);
+    ene.sprite.setAnimRate(15);
+    ene.sprite.setLooped(true);
+    ene.sprite.play();
 
-     enemies.push_back(ene);
- }
+    enemies.push_back(ene);
+}
 
-  void PlayState::Shoot(){
+void PlayState::Shoot(){
 
-     if(shootDelay == 0) {
-         //Delay entre disparos
-         shootDelay = 5;
-         //Som do disparo
-         sfx.openFromFile("data/audio/MegaBuster.wav");
-         sfx.play();
-         //Cria uma struct da bela
-         shot_str shot;
-         //Configura srpite
-         shot.sprite.load("data/img/shot.png", 6, 6, 0, 0, 0,0, 1, 1,1);
-         //Informa posição, conforme localização do mega man
-         float posxMM = megaman.getPosition().x;
-         float posyMM = megaman.getPosition().y + 16;
-         posxMM  = megaman.getMirror() == 0 ? posxMM + 30 : posxMM - 5;
-         shot.sprite.setPosition(posxMM, posyMM);
-         //Informa direção da bala
-         shot.dir = megaman.getMirror() == 0 ? 1 : -1;
-         //Informa quem atirou
-         shot.friendly = true;
-         //Adiciona no vetor de balas
-         shoots.push_back(shot);
-     }
- }
+    if(shootDelay == 0) {
+        //Delay entre disparos
+        shootDelay = 5;
+        //Som do disparo
+        sfx.openFromFile("data/audio/MegaBuster.wav");
+        sfx.play();
+        //Cria uma struct da bela
+        shot_str shot;
+        //Configura srpite
+        shot.sprite.load("data/img/shot.png", 6, 6, 0, 0, 0,0, 1, 1,1);
+        //Informa posição, conforme localização do mega man
+        float posxMM = megaman.getPosition().x;
+        float posyMM = megaman.getPosition().y + 16;
+        posxMM  = megaman.getMirror() == 0 ? posxMM + 30 : posxMM - 5;
+        shot.sprite.setPosition(posxMM, posyMM);
+        //Informa direção da bala
+        shot.dir = megaman.getMirror() == 0 ? 1 : -1;
+        //Informa quem atirou
+        shot.friendly = true;
+        //Adiciona no vetor de balas
+        shoots.push_back(shot);
+    }
+}
 
- sf::Uint16 PlayState::getCellFromMap(uint8_t layernum, float x, float y){
-     auto layers = map->GetLayers();
-     tmx::MapLayer& layer = layers[layernum];
-     sf::Vector2u mapsize = map->GetMapSize();
-     sf::Vector2u tilesize = map->GetMapTileSize();
-     mapsize.x /= tilesize.x;
-     mapsize.y /= tilesize.y;
-     int col = floor(x / tilesize.x);
-     int row = floor(y / tilesize.y);
-     return layer.tiles[row*mapsize.x + col].gid;
- }
+sf::Uint16 PlayState::getCellFromMap(uint8_t layernum, float x, float y){
+    auto layers = map->GetLayers();
+    tmx::MapLayer& layer = layers[layernum];
+    sf::Vector2u mapsize = map->GetMapSize();
+    sf::Vector2u tilesize = map->GetMapTileSize();
+    mapsize.x /= tilesize.x;
+    mapsize.y /= tilesize.y;
+    int col = floor(x / tilesize.x);
+    int row = floor(y / tilesize.y);
+    return layer.tiles[row*mapsize.x + col].gid;
+}
 
- void PlayState::update(cgf::Game* game){
+void PlayState::update(cgf::Game* game){
 
-     //Atualiza informações do mega man
-     UpdateMegaman(game);
+    //Atualiza informações do mega man
+    if(alive){
+        UpdateMegaman(game);
 
-     //Configura direção e colisão dos disparos
-     UpdateShoots(game);
+        //Configura direção e colisão dos disparos
+        UpdateShoots(game);
 
-     // Atualiza comportamento dos inimigos
-     UpdateEnemy(game);
+        // Atualiza comportamento dos inimigos
+        UpdateEnemy(game);
+    }
 
-     // Atualiza score
-     std::stringstream str;
-     str << "Score: " << score;
-     scoreText.setString(str.str());
+    // Atualiza score
+    std::stringstream str;
+    str << "Score: " << score;
+    scoreText.setString(str.str());
 
-     centerMapOnPlayer();
- }
+    centerMapOnPlayer();
+}
 
- void PlayState::UpdateMegaman(cgf::Game* game){
+void PlayState::UpdateMegaman(cgf::Game* game){
 
-     //Obtem o ambiente
-     screen = game->getScreen();
+    if((hpbartiles.size() == 0 && damageDelay == 50) || megaman.getPosition().y > 400){
+        Died();
+    } else {        
+        //Obtem o ambiente
+        screen = game->getScreen();
+        
+        //Delay do tiro
+        shootDelay -= shootDelay > 0 ? 1 : 0;
+        
+        //Configura pulo
+        jumpCount -= jumpCount > 0 ? 1 : 0;
+        damageDelay -= damageDelay > 0 ? 1 : 0;
+        walking = dirx != 0;
+        
+        if(jumpCount > 0){
+            diry = -1;
+        } else {
+            diry = 1;
+        }
+        
+        megaman.setVisible(damageDelay % 2 == 0);
+        
+        //Configura velocidade de corrida
+        megaman.setXspeed(dirx*150);
+        megaman.setYspeed(diry*250);
+        
+        //Obtem o tile de colisão
+        sf::Uint16 tile = checkCollision(1, game, &megaman);
+        //cout << "Tile: " << tile << endl;
+        
+        switch(tile){
+            case 21: //floor
+            break;
+            case 2: // ceiling
+            break;
+            case 1: // obstacle left, right
+            break;
+            case 58: // game over
+            break;
+        }
+        
+        jumping = tile != 21;
+        
+        SetMegamanAnim();
+        
+    }
+}
 
-     //Delay do tiro
-     shootDelay -= shootDelay > 0 ? 1 : 0;
-
-     //Configura pulo
-     jumpCount -= jumpCount > 0 ? 1 : 0;
-     damageDelay -= damageDelay > 0 ? 1 : 0;
-     walking = dirx != 0;
-
-     if(jumpCount > 0){
-         diry = -1;
-     } else {
-         diry = 1;
-     }
-
-     megaman.setVisible(damageDelay % 2 == 0);
-
-     //Configura velocidade de corrida
-     megaman.setXspeed(dirx*150);
-     megaman.setYspeed(diry*250);
-
-     //Obtem o tile de colisão
-     sf::Uint16 tile = checkCollision(1, game, &megaman);
-     //cout << "Tile: " << tile << endl;
-
-     switch(tile){
-         case 21: //floor
-         break;
-         case 2: // ceiling
-         break;
-         case 1: // obstacle left, right
-         break;
-         case 58: // game over
-         break;
-     }
-
-     jumping = tile != 21;
-
-     //Verifica se o player ainda pode pular
-
-     SetMegamanAnim();
-
- }
+void PlayState::Died(){
+    alive = false;
+    music.openFromFile("data/audio/GameOver.ogg");
+    music.setLoop(false);
+    music.play();
+    sfx.openFromFile("data/audio/Die.wav");
+    sfx.play();
+}
 
 void PlayState::SetMegamanAnim(){
 
@@ -365,43 +378,43 @@ void PlayState::SetMegamanAnim(){
     lastAnim = currentAnim;
 }
 
- void PlayState::UpdateShoots(cgf::Game* game){
-     std::vector<int> shotRemove;
-     std::vector<int> enemyRemove;
+void PlayState::UpdateShoots(cgf::Game* game){
+    std::vector<int> shotRemove;
+    std::vector<int> enemyRemove;
 
-     for (int i = 0; i < shoots.size(); i++){
-         shoots[i].sprite.move(shoots[i].dir * 7,0);
-         for (int j = 0; j < enemies.size(); j++){
-             if(shoots[i].sprite.circleCollision(enemies[j].sprite)){
-                 if(enemies[j].damageDelay == 0){
-                     enemies[j].damageDelay = 5;
-                     enemies[j].health -= 1;
-                     if(enemies[j].health == 0){
-                         score += enemies[j].score;
-                         enemyRemove.push_back(j);
-                     }
-                 }
-                 shotRemove.push_back(i);
-                 break;
-             }
-         }
+    for (int i = 0; i < shoots.size(); i++){
+        shoots[i].sprite.move(shoots[i].dir * 7,0);
+        for (int j = 0; j < enemies.size(); j++){
+            if(shoots[i].sprite.circleCollision(enemies[j].sprite)){
+                if(enemies[j].damageDelay == 0){
+                    enemies[j].damageDelay = 5;
+                    enemies[j].health -= 1;
+                    if(enemies[j].health == 0){
+                        score += enemies[j].score;
+                        enemyRemove.push_back(j);
+                    }
+                }
+                shotRemove.push_back(i);
+                break;
+            }
+        }
 
-         if(std::abs(megaman.getPosition().x - shoots[i].sprite.getPosition().x)  > 500){
-             shotRemove.push_back(i);
-         }
-     }
+        if(std::abs(megaman.getPosition().x - shoots[i].sprite.getPosition().x)  > 500){
+            shotRemove.push_back(i);
+        }
+    }
 
-     // Remove inimigos e disparos
-     for(int i = 0; i < shotRemove.size(); i++ ){
-         shoots.erase(shoots.begin() + shotRemove[i]);
-     }
+    // Remove inimigos e disparos
+    for(int i = 0; i < shotRemove.size(); i++ ){
+        shoots.erase(shoots.begin() + shotRemove[i]);
+    }
 
-     for(int i = 0; i < enemyRemove.size(); i++ ){
-         enemies.erase(enemies.begin() + enemyRemove[i]);
-         sfx.openFromFile("data/audio/Damage.wav");
-         sfx.play();
-     }
- }
+    for(int i = 0; i < enemyRemove.size(); i++ ){
+        enemies.erase(enemies.begin() + enemyRemove[i]);
+        sfx.openFromFile("data/audio/Damage.wav");
+        sfx.play();
+    }
+}
 
 void PlayState::UpdateEnemy(cgf::Game* game){
     int x, y;
@@ -464,119 +477,121 @@ void PlayState::draw(cgf::Game* game){
     }
 }
 
- #pragma region INITIAL_SETTING
+#pragma region INITIAL_SETTING
 
- void PlayState::ControlSetting(){
+void PlayState::ControlSetting(){
 
-     cout << "Configurando controles "  << endl;
+    cout << "Configurando controles "  << endl;
 
-     im = cgf::InputManager::instance();
+    im = cgf::InputManager::instance();
 
-     im->addKeyInput("left", sf::Keyboard::Left);
-     im->addKeyInput("right", sf::Keyboard::Right);
-     im->addKeyInput("up", sf::Keyboard::Up);
-     im->addKeyInput("down", sf::Keyboard::Down);
-     im->addKeyInput("quit", sf::Keyboard::Escape);
-     im->addKeyInput("shoot", sf::Keyboard::A);
-     im->addKeyInput("jump", sf::Keyboard::S);
-     im->addMouseInput("rightclick", sf::Mouse::Right);
-     im->addKeyInput("pause", sf::Keyboard::Return);
-     //im->addKeyInput("zoomout", sf::Keyboard::Z);
+    im->addKeyInput("left", sf::Keyboard::Left);
+    im->addKeyInput("right", sf::Keyboard::Right);
+    im->addKeyInput("up", sf::Keyboard::Up);
+    im->addKeyInput("down", sf::Keyboard::Down);
+    im->addKeyInput("quit", sf::Keyboard::Escape);
+    im->addKeyInput("shoot", sf::Keyboard::A);
+    im->addKeyInput("jump", sf::Keyboard::S);
+    im->addMouseInput("rightclick", sf::Mouse::Right);
+    im->addKeyInput("pause", sf::Keyboard::Return);
+    //im->addKeyInput("zoomout", sf::Keyboard::Z);
 
- }
+}
 
- void PlayState::CreateMegaMan(){
+void PlayState::CreateMegaMan(){
 
-     cout << "Criando Mega Man "  << endl;
+    cout << "Criando Mega Man "  << endl;
+    //Vivo
+    alive = true;
 
-     //Direção do megaman
-     dirx = 0; // sprite direction: right (1), left (-1)
-     diry = 1; // down (1), up (-1)
-     last = 0;
+    //Direção do megaman
+    dirx = 0; // sprite direction: right (1), left (-1)
+    diry = 1; // down (1), up (-1)
+    last = 0;
 
-     //Posição inicial do megaman
-     posx = 100;
-     posy = 285;
-     walking = false;
+    //Posição inicial do megaman
+    posx = 100;
+    posy = 285;
+    walking = false;
 
-     //Inicializa o Mega man
-     megaman.load("data/img/megaman.png", 32, 32, 0, 0, 0, 0, 3, 5, 14);
-     megaman.setPosition(posx,posy);
-     megaman.setAnimRate(15);
-     megaman.setLooped(true);
-     megaman.setFrameRange(12,13);
-     megaman.play();
-
-     damageDelay = 0;
-     InitHpBar();
- }
-
- void PlayState::InitHpBar(){
     //Inicializa o Mega man
-    hpbar.load("data/img/hp_bar_background.png", 8, 42, 0, 0, 0, 0, 1, 1, 1);
-    hpbar.scale(2,2);
-    hpbar.setPosition(25,75);
+    megaman.load("data/img/megaman.png", 32, 32, 0, 0, 0, 0, 3, 5, 14);
+    megaman.setPosition(posx,posy);
+    megaman.setAnimRate(15);
+    megaman.setLooped(true);
+    megaman.setFrameRange(12,13);
+    megaman.play();
 
-    for(int i = 0; i < 20; i++){
+    damageDelay = 0;
+    InitHpBar();
+}
+
+void PlayState::InitHpBar(){
+//Inicializa o Mega man
+hpbar.load("data/img/hp_bar_background.png", 8, 42, 0, 0, 0, 0, 1, 1, 1);
+hpbar.scale(2,2);
+hpbar.setPosition(25,75);
+
+    for(int i = 0; i < 5; i++){
         cgf::Sprite tile;
         tile.load("data/img/hp_bar_tile.png", 6, 1, 0, 0, 0, 0, 1, 1, 1);
         tile.scale(2,2);
         hpbartiles.push_back(tile);
     }
 
- }
+}
 
- void PlayState::CreateEnemies(){
+void PlayState::CreateEnemies(){
 
-     cout << "Criando Inimigos "  << endl;
+    cout << "Criando Inimigos "  << endl;
 
-     AddEnemy(3, 300, 105);
-     AddEnemy(2, 200, 290);
-     AddEnemy(2, 300, 250);
-     AddEnemy(2, 400, 250);
-     AddEnemy(2, 200, 250);
- }
+    AddEnemy(3, 300, 105);
+    AddEnemy(2, 200, 290);
+    AddEnemy(2, 300, 250);
+    AddEnemy(2, 400, 250);
+    AddEnemy(2, 200, 250);
+}
 
- #pragma region ADDITIONAL_CONFIGURATION
+#pragma region ADDITIONAL_CONFIGURATION
 
- void PlayState::centerMapOnPlayer(){
+void PlayState::centerMapOnPlayer(){
 
-     sf::View view = screen->getView();
-     sf::Vector2u mapsize = map->GetMapSize();
-     sf::Vector2f viewsize = view.getSize();
-     viewsize.x /= 2;
-     viewsize.y /= 2;
+    sf::View view = screen->getView();
+    sf::Vector2u mapsize = map->GetMapSize();
+    sf::Vector2f viewsize = view.getSize();
+    viewsize.x /= 2;
+    viewsize.y /= 2;
 
-     sf::Vector2f pos = megaman.getPosition();
+    sf::Vector2f pos = megaman.getPosition();
 
-     float panX = viewsize.x; // minimum pan
-     if(pos.x >= viewsize.x)
-         panX = pos.x;
+    float panX = viewsize.x; // minimum pan
+    if(pos.x >= viewsize.x)
+        panX = pos.x;
 
-     if(panX >= mapsize.x - viewsize.x)
-         panX = mapsize.x - viewsize.x;
+    if(panX >= mapsize.x - viewsize.x)
+        panX = mapsize.x - viewsize.x;
 
-     float panY = viewsize.y; // minimum pan
-     if(pos.y >= viewsize.y)
-         panY = pos.y;
+    float panY = viewsize.y; // minimum pan
+    if(pos.y >= viewsize.y)
+        panY = pos.y;
 
-     if(panY >= mapsize.y - viewsize.y)
-         panY = mapsize.y - viewsize.y;
+    if(panY >= mapsize.y - viewsize.y)
+        panY = mapsize.y - viewsize.y;
 
-     sf::Vector2f center(panX,panY);
-     view.setCenter(center);
-     screen->setView(view);
+    sf::Vector2f center(panX,panY);
+    view.setCenter(center);
+    screen->setView(view);
 
-     // set score position
-     scoreText.setPosition(panX - 100, panY - 200);
+    // set score position
+    scoreText.setPosition(panX - 100, panY - 200);
 
-     // set hp bar position
-     hpbar.setPosition(panX - 275, panY - 150);
+    // set hp bar position
+    hpbar.setPosition(panX - 275, panY - 150);
 
     for(int i = 0; i < hpbartiles.size(); i++){
         hpbartiles[i].setPosition(hpbar.getPosition().x + 2, hpbar.getPosition().y + 79 - i*4);
     }
- }
+}
 
  sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite* obj){
      int i, x1, x2, y1, y2;
