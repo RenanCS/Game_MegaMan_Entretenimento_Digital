@@ -228,7 +228,7 @@ void PlayState::Shoot(){
 }
 
 sf::Uint16 PlayState::getCellFromMap(uint8_t layernum, float x, float y){
-    auto layers = map->GetLayers();
+    auto& layers = map->GetLayers();
     tmx::MapLayer& layer = layers[layernum];
     sf::Vector2u mapsize = map->GetMapSize();
     sf::Vector2u tilesize = map->GetMapTileSize();
@@ -449,11 +449,11 @@ void PlayState::UpdateEnemy(cgf::Game* game){
                 x = enemies[i].sprite.getPosition().x > megaman.getPosition().x ? -1 : enemies[i].sprite.getPosition().x < megaman.getPosition().x ? 1 : 0;
                 y = enemies[i].sprite.getPosition().y < 305 ? 1 : 0;
                 enemies[i].sprite.setXspeed(x * 25);
-                enemies[i].sprite.setYspeed(y * 75);
-                /*tile = checkCollision(1, game, &enemies[i].sprite);
+                enemies[i].sprite.setYspeed(1 * 75);
+                tile = checkCollision(1, game, &enemies[i].sprite);
                 if(tile == 21){
-                enemies[i].sprite.move(0, -2);
-                }*/
+                   enemies[i].sprite.move(0, -2);
+                }
                 //enemies[i].sprite.move(x,y);
             break;
             case 3:
@@ -630,8 +630,8 @@ void PlayState::centerMapOnPlayer(){
 
      // Get the height and width of the object (in this case, 100% of a tile)
      sf::Vector2u objsize = obj->getSize();
-     objsize.x *= obj->getScale().x * 0.95;
-     objsize.y *= obj->getScale().y * 0.95;
+     objsize.x *= obj->getScale().x * 1;
+     objsize.y *= obj->getScale().y * 1;
 
      float px = obj->getPosition().x;
      float py = obj->getPosition().y;
