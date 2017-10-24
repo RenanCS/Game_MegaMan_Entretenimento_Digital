@@ -17,7 +17,7 @@
 #include <tmx/MapLoader.h>
 #include <vector>
 
-
+typedef struct enemy;
 class PlayState : public cgf::GameState
 {
     public:
@@ -37,11 +37,18 @@ class PlayState : public cgf::GameState
 
     void UpdateMegaman(cgf::Game* game);
     void AddEnemy(int id, int x, int y);
+    void AddBoss();
     void UpdateEnemy(cgf::Game* game);
     void UpdateShoots(cgf::Game* game);
+    void UpdateBoss(cgf::Game* game);
+    void UpdateRock(cgf::Game* game);
     void InitScore();
     void InitSound();
     void InitHpBar();
+    void DamageMegaman(int damage);
+
+    void BossLand(bool mirror);
+    void BossRock(int x);
 
     void SetMegamanAnim();
     void Shoot();
@@ -62,15 +69,14 @@ class PlayState : public cgf::GameState
 
     static PlayState m_PlayState;
 
-    int dirx, diry, last, jumpCount, posx,posy, lastAnim, shootDelay, damageDelay, score, alive, gameoverCount;
-    bool shooting, jumping, walking;
-    cgf::Sprite megaman, hpbar;
+    int dirx, diry, last, jumpCount, posx,posy, lastAnim, shootDelay, damageDelay, score, alive, gameoverCount, enemyDelay, bossState, bossTimer, rockDir;
+    bool shooting, jumping, walking, onBoss;
+    cgf::Sprite megaman, hpbar, rock;
     std::vector<cgf::Sprite> hpbartiles;
     sf::RenderWindow* screen;
     cgf::InputManager* im;
     tmx::MapLoader* map;
     sf::Music music;
-    sf::Music sfx;
     sf::Font font;
     sf::Text scoreText;
 

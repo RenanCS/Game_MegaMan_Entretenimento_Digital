@@ -3,15 +3,16 @@
  *  Normal "play" state
  */
 
- #include <iostream>
- #include <cmath>
- #include <vector>
- #include <unistd.h>
- #include <tmx/MapLoader.h>
- #include "Game.h"
- #include "MenuState.h"
- #include "PlayState.h"
- #include "PauseState.h"
+#include <iostream>
+#include <cmath>
+#include <vector>
+#include <unistd.h>
+#include <time.h>
+#include <tmx/MapLoader.h>
+#include "Game.h"
+#include "MenuState.h"
+#include "PlayState.h"
+#include "PauseState.h"
 #include "InputManager.h"
 #include "SFML/Audio.hpp"
 
@@ -26,19 +27,28 @@ typedef struct shot_str {
     cgf::Sprite sprite;
 }shot_str;
 
+typedef struct sfx_str{
+    sf::Music buster;
+    sf::Music damage;
+    sf::Music die;
+    sf::Music jump;
+    sf::Music explosion;
+} sfx_str;
 
-typedef struct enemy {
+typedef struct enemy{
     cgf::Sprite sprite;
     std::string name;
     int id;
     int health;
     int damageDelay;
     int score;
+    int damage;
 } enemy;
 
 
 std::vector<shot_str> shoots;
 std::vector<enemy> enemies;
+sfx_str soundfx;
 
 #pragma region EVENT_GAME
 
@@ -105,8 +115,7 @@ void PlayState::handleEvents(cgf::Game* game){
     if(im->testEvent("jump")){
         if (!jumping){
 
-            sfx.openFromFile("data/audio/27-PointTally.wav");
-            sfx.play();
+            soundfx.jump.play();
 
             jumping = true;
             jumpCount = 10;
@@ -141,7 +150,18 @@ void PlayState::InitSound(){
     music.setVolume(50);
     music.play();
     music.setLoop(true);
-    sfx.setVolume(50);
+
+    soundfx.buster.openFromFile("data/audio/MegaBuster.wav");
+    soundfx.damage.openFromFile("data/audio/Damage.wav");
+    soundfx.die.openFromFile("data/audio/Die.wav");
+    soundfx.jump.openFromFile("data/audio/Jump.wav");
+    soundfx.explosion.openFromFile("data/audio/Explosion.wav");
+
+    soundfx.buster.setVolume(50);
+    soundfx.damage.setVolume(50);
+    soundfx.die.setVolume(50);
+    soundfx.jump.setVolume(50);
+    soundfx.explosion.setVolume(50);
 }
 
 void PlayState::InitScore(){
@@ -169,24 +189,27 @@ void PlayState::AddEnemy(int id, int x, int y) {
     switch(id)
     {
         case 1:
-            ene.sprite.load("data/img/gutsman.png", 32, 32, 0, 0, 0, 0,7, 1, 7);
+            ene.sprite.load("data/img/gutsman.png", 32, 32, 0, 0, 0, 0, 7, 1, 7);
             ene.health = 24;
+            ene.damage = 5;
             ene.score = 5000;
             ene.name = "gustsman";
         break;
 
         case 2:
-            ene.sprite.load("data/img/met.png", 32, 32, 0, 0, 0, 0, 5, 1, 5);
+            ene.sprite.load("data/img/met.png", 20, 20, 0, 0, 0, 0, 5, 1, 5);
             ene.sprite.setFrameRange(2,4);
             ene.health = 2;
+            ene.damage = 1;
             ene.score = 500;
             ene.name = "met";
         break;
 
         case 3:
-            ene.sprite.load("data/img/blader.png", 32, 32, 0, 0, 0, 0, 4, 1, 4);
+            ene.sprite.load("data/img/blader.png", 16, 24, 0, 0, 0, 0, 4, 1, 4);
             ene.sprite.setFrameRange(0,1);
             ene.health = 1;
+            ene.damage = 2;
             ene.score = 500;
             ene.name = "blader";
         break;
@@ -201,14 +224,21 @@ void PlayState::AddEnemy(int id, int x, int y) {
     enemies.push_back(ene);
 }
 
+void PlayState::AddBoss(){
+    AddEnemy(1, 2800, 280);
+    enemy* boss = &enemies[0];
+    boss->sprite.setMirror(true);
+    boss->sprite.setLooped(false);
+    rock.load("data/img/rock.png", 32, 32, 0, 0, 0, 0, 1, 1, 1);
+}
+
 void PlayState::Shoot(){
 
     if(shootDelay == 0) {
         //Delay entre disparos
         shootDelay = 5;
         //Som do disparo
-        sfx.openFromFile("data/audio/MegaBuster.wav");
-        sfx.play();
+        soundfx.buster.play();
         //Cria uma struct da bela
         shot_str shot;
         //Configura srpite
@@ -247,6 +277,18 @@ std::string to_zero_lead(const int value, const unsigned precision){
 }
 
 void PlayState::update(cgf::Game* game){
+    if(enemyDelay <= 0 && !onBoss){
+        srand (time(NULL));
+        int randN = rand() % 100;
+        if(randN >= 50){
+            AddEnemy(3, megaman.getPosition().x, 0);
+        } else {
+            AddEnemy(3, megaman.getPosition().x, 400);
+        }
+        enemyDelay = 150;
+    } else {
+        enemyDelay -= 1;
+    }
 
     if(alive){
         //Atualiza informações do mega man
@@ -257,6 +299,10 @@ void PlayState::update(cgf::Game* game){
 
         // Atualiza comportamento dos inimigos
         UpdateEnemy(game);
+
+        if(onBoss){
+            UpdateRock(game);
+        }
     } else {
         gameoverCount -= 1;
         if(gameoverCount <= 0){
@@ -317,6 +363,14 @@ void PlayState::UpdateMegaman(cgf::Game* game){
             break;
         }
 
+        if(megaman.getPosition().x >= 2435 && !onBoss){
+            onBoss = true;
+            enemies.clear();
+            AddBoss();
+            music.openFromFile("data/audio/StageBoss.ogg");
+            music.play();
+        }
+
         jumping = tile != 21;
 
         SetMegamanAnim();
@@ -330,8 +384,7 @@ void PlayState::Died(){
     music.openFromFile("data/audio/GameOver.ogg");
     music.setLoop(false);
     music.play();
-    sfx.openFromFile("data/audio/Die.wav");
-    sfx.play();
+    soundfx.die.play();
 }
 
 void PlayState::Clear(){
@@ -370,6 +423,7 @@ void PlayState::SetMegamanAnim(){
                 megaman.play();
                 megaman.setFrameRange(12,13);
                 megaman.setAnimRate(5);
+                cout << "position: (" << megaman.getPosition().x << ", " << megaman.getPosition().y << ")" << endl;
                 break;
             case 1:
                 megaman.play();
@@ -407,7 +461,7 @@ void PlayState::UpdateShoots(cgf::Game* game){
     for (int i = 0; i < shoots.size(); i++){
         shoots[i].sprite.move(shoots[i].dir * 7,0);
         for (int j = 0; j < enemies.size(); j++){
-            if(shoots[i].sprite.circleCollision(enemies[j].sprite)){
+            if(shoots[i].sprite.bboxCollision(enemies[j].sprite)){
                 if(enemies[j].damageDelay == 0){
                     enemies[j].damageDelay = 5;
                     enemies[j].health -= 1;
@@ -433,48 +487,168 @@ void PlayState::UpdateShoots(cgf::Game* game){
 
     for(int i = 0; i < enemyRemove.size(); i++ ){
         enemies.erase(enemies.begin() + enemyRemove[i]);
-        sfx.openFromFile("data/audio/Damage.wav");
-        sfx.play();
+        soundfx.explosion.play();
     }
 }
 
 void PlayState::UpdateEnemy(cgf::Game* game){
     int x, y;
     sf::Uint16 tile;
+    std::vector<int> enemyRemove;
 
     for (int i = 0; i < enemies.size(); i++){
         enemies[i].damageDelay -= enemies[i].damageDelay > 0 ? 1 : 0;
-        switch(enemies[i].id){
-            case 2:
-                x = enemies[i].sprite.getPosition().x > megaman.getPosition().x ? -1 : enemies[i].sprite.getPosition().x < megaman.getPosition().x ? 1 : 0;
-                y = enemies[i].sprite.getPosition().y < 305 ? 1 : 0;
-                enemies[i].sprite.setXspeed(x * 25);
-                enemies[i].sprite.setYspeed(1 * 75);
-                tile = checkCollision(1, game, &enemies[i].sprite);
-                if(tile == 21){
-                   enemies[i].sprite.move(0, -2);
-                }
-                //enemies[i].sprite.move(x,y);
-            break;
-            case 3:
-                x = enemies[i].sprite.getPosition().x > megaman.getPosition().x ? -1 : enemies[i].sprite.getPosition().x < megaman.getPosition().x ? 1 : 0;
-                y = enemies[i].sprite.getPosition().y > megaman.getPosition().y ? -1 : enemies[i].sprite.getPosition().y < megaman.getPosition().y ? 1 : 0;
-                enemies[i].sprite.setXspeed(x * 50);
-                enemies[i].sprite.setYspeed(y * 50);
-                //enemies[i].sprite.move(x,y);
-            break;
+        if(enemies[i].sprite.getPosition().y < 500){
+            switch(enemies[i].id){
+                case 1:
+                    UpdateBoss(game);
+                    break;
+                case 2:
+                    x = enemies[i].sprite.getPosition().x > megaman.getPosition().x ? -1 : enemies[i].sprite.getPosition().x < megaman.getPosition().x ? 1 : 0;
+                    y = enemies[i].sprite.getPosition().y < 305 ? 1 : 0;
+                    enemies[i].sprite.setXspeed(x * 25);
+                    enemies[i].sprite.setYspeed(1 * 75);
+                    tile = checkCollision(1, game, &enemies[i].sprite);
+                    if(tile == 21){
+                        enemies[i].sprite.move(0, -3);
+                    }
+                    break;
+                case 3:
+                    x = enemies[i].sprite.getPosition().x > megaman.getPosition().x ? -1 : enemies[i].sprite.getPosition().x < megaman.getPosition().x ? 1 : 0;
+                    y = enemies[i].sprite.getPosition().y > megaman.getPosition().y ? -1 : enemies[i].sprite.getPosition().y < megaman.getPosition().y ? 1 : 0;
+                    enemies[i].sprite.setXspeed(x * 50);
+                    enemies[i].sprite.setYspeed(y * 50);
+                    break;
+            }
+            if(damageDelay == 0 && enemies[i].sprite.bboxCollision(megaman)){
+                DamageMegaman(enemies[i].damage);
+            }
+            enemies[i].sprite.update(game->getUpdateInterval());
+        } else {
+            enemyRemove.push_back(i);
         }
-        if(damageDelay == 0 && enemies[i].sprite.circleCollision(megaman)){
+    }
+
+    for(int i = 0; i < enemyRemove.size(); i++ ){
+        enemies.erase(enemies.begin() + enemyRemove[i]);
+        soundfx.explosion.play();
+    }
+}
+
+void PlayState::DamageMegaman(int damage){
+    if(hpbartiles.size() > 0){
+        soundfx.damage.play();
+        for(int j = 0; j < damage; j++){
             if(hpbartiles.size() > 0){
-                sfx.openFromFile("data/audio/Damage.wav");
-                sfx.play();
                 hpbartiles.pop_back();
-                damageDelay = 50;
             }
         }
-
-        enemies[i].sprite.update(game->getUpdateInterval());
+        damageDelay = 50;
     }
+}
+
+void PlayState::UpdateBoss(cgf::Game* game){
+    enemy* boss = &enemies[0];
+    sf::Uint16 tile;
+
+    switch(bossState){
+        case 0: //jump to left
+            boss->sprite.setXspeed(-100);
+            if(boss->sprite.getPosition().x > 2750){
+                boss->sprite.setYspeed(-50);
+            } else {
+                boss->sprite.setYspeed(50);
+            }
+
+            if(boss->sprite.getPosition().x <= 2500){
+                bossTimer = 75;
+                bossState = 3;
+                rockDir = 1;
+                BossLand(false);
+                BossRock(boss->sprite.getPosition().x);
+            }
+            break;
+        case 1: //jump to right
+            boss->sprite.setXspeed(100);
+            if(boss->sprite.getPosition().x < 2650){
+                boss->sprite.setYspeed(-50);
+            } else {
+                boss->sprite.setYspeed(50);
+            }
+
+            if(boss->sprite.getPosition().x >= 2900){
+                bossTimer = 75;
+                bossState = 2;
+                rockDir = -1;
+                BossLand(true);
+                BossRock(boss->sprite.getPosition().x);
+            }
+            break;
+        case 2: // throw rock right
+            boss->sprite.play();
+            if(bossTimer == 25){
+                boss->sprite.setFrameRange(0,1);
+            }
+
+            if(bossTimer <= 0){
+                boss->sprite.setCurrentFrame(2);
+                bossState = 0;
+            }
+            break;
+        case 3: // throw rock left
+            boss->sprite.play();
+            if(bossTimer == 25){
+                boss->sprite.setFrameRange(0,1);
+            }
+            if(bossTimer <= 0){
+                boss->sprite.stop();
+                boss->sprite.setCurrentFrame(2);
+                bossState = 1;
+            }
+            break;
+    }
+    bossTimer -= 1;
+    tile = checkCollision(1, game, &boss->sprite);
+    if(tile == 21){
+        boss->sprite.move(0, -3);
+    }
+    boss->sprite.update(game->getUpdateInterval());
+}
+
+void PlayState::BossLand(bool mirror){
+    enemy* boss = &enemies[0];
+
+    boss->sprite.setXspeed(0);
+    boss->sprite.setYspeed(0);
+    boss->sprite.setLooped(false);
+    boss->sprite.setFrameRange(3,6);
+    boss->sprite.setAnimRate(1);
+    boss->sprite.play();
+    boss->sprite.setMirror(mirror);
+}
+
+void PlayState::BossRock(int x){
+    rock.setPosition(x, -50);
+}
+
+void PlayState::UpdateRock(cgf::Game* game){
+    if(bossTimer > 40){
+        if(rock.getPosition().y < 270){
+            rock.setXspeed(0);
+            rock.setYspeed(500);
+        } else {
+            rock.setYspeed(0);
+        }
+    } else if(bossState == 3 || bossState == 2) {
+        rock.setYspeed(10);
+        rock.setXspeed(rockDir * 250);
+    }
+
+    if(damageDelay == 0 && rock.bboxCollision(megaman)){
+        DamageMegaman(5);
+    }
+
+    rock.update(game->getUpdateInterval());
 }
 
 void PlayState::draw(cgf::Game* game){
@@ -496,6 +670,10 @@ void PlayState::draw(cgf::Game* game){
     screen->draw(hpbar);
     for (int i = 0; i < hpbartiles.size(); i++) {
         screen->draw(hpbartiles[i]);
+    }
+
+    if(onBoss){
+        screen->draw(rock);
     }
 }
 
@@ -526,17 +704,21 @@ void PlayState::CreateMegaMan(){
     //Vivo
     alive = true;
 
+    //Em chefe
+    onBoss = false;
+
     //Direção do megaman
     dirx = 0; // sprite direction: right (1), left (-1)
     diry = 1; // down (1), up (-1)
     last = 0;
 
     //Posição inicial do megaman
-    posx = 100;
+    //posx = 100;
+    posx = 2000;
     posy = 285;
     walking = false;
 
-    //Inicializa o Mega man
+    //Inicializa o Mega mansetVolume(50);
     megaman.load("data/img/megaman.png", 32, 32, 0, 0, 0, 0, 3, 5, 14);
     megaman.setPosition(posx,posy);
     megaman.setAnimRate(15);
@@ -555,7 +737,7 @@ void PlayState::InitHpBar(){
     //hpbar.scale(2,2);
     hpbar.setPosition(25,75);
 
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < 20; i++){
         cgf::Sprite tile;
         tile.load("data/img/hp_bar_tile.png", 12, 2, 0, 0, 0, 0, 1, 1, 1);
         hpbartiles.push_back(tile);
@@ -565,12 +747,17 @@ void PlayState::InitHpBar(){
 void PlayState::CreateEnemies(){
 
     cout << "Criando Inimigos "  << endl;
+    enemyDelay = 50;
 
-    AddEnemy(3, 300, 105);
-    AddEnemy(2, 200, 290);
-    AddEnemy(2, 300, 250);
-    AddEnemy(2, 400, 250);
-    AddEnemy(2, 200, 250);
+    AddEnemy(2, 250, 290);
+    AddEnemy(2, 550, 250);
+    AddEnemy(2, 880, 250);
+    AddEnemy(2, 928, 150);
+    AddEnemy(2, 1270, 250);
+    AddEnemy(2, 1650, 250);
+    AddEnemy(2, 1700, 250);
+    AddEnemy(2, 1850, 250);
+    AddEnemy(2, 2415, 250);
 }
 
 #pragma region ADDITIONAL_CONFIGURATION
