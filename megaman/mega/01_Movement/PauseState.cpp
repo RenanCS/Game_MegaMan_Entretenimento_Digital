@@ -20,13 +20,16 @@ using namespace std;
 void PauseState::init()
 {
 
-    //playSprite3.load("data/img/Char01.png");
-	//playSprite3.setPosition(50,300);
+     //INFORMAÇÕES DE CONTROL
+    InitText();
 
-     //GERENCIADOR DE ENTRADA
+    //GERENCIADOR DE ENTRADA
     im = cgf::InputManager::instance();
-
     im->addKeyInput("resume", sf::Keyboard::Return);
+    im->addKeyInput("quit", sf::Keyboard::Escape);
+
+    //LOAD BACKGROUND
+    //background.load("data/img/imgpause.png");
 
 	cout << "PauseState: Init" << endl;
 }
@@ -56,6 +59,8 @@ void PauseState::handleEvents(cgf::Game* game)
             game->quit();
     }
 
+    if(im->testEvent("quit"))
+        game->quit();
     if(im->testEvent("resume"))
         game->popState();
 
@@ -65,9 +70,36 @@ void PauseState::handleEvents(cgf::Game* game)
 
 void PauseState::update(cgf::Game* game)
 {
+    std::stringstream str;
+    str << "PAUSE GAME \n [ENTER] TO RETURN \n [ESC] TO QUIT";
+    scoreText.setString(str.str());
 }
 
 void PauseState::draw(cgf::Game* game)
 {
     screen = game->getScreen();
+
+    // set text position
+    screen->draw(scoreText);
+    sf::View view = screen->getView();
+    scoreText.setPosition(view.getCenter().x - 100, view.getCenter().y - 100);
+
+    //Set image background
+    //background.setPosition(1,1);
+    //game->getScreen()->draw(background);
+
 }
+
+void PauseState::InitText(){
+    if (!font.loadFromFile("data/fonts/Altebro.ttf"))
+    {
+        cout << "Cannot load arial.ttf font!" << endl;
+        exit(1);
+    }
+    scoreText.setFont(font);
+    scoreText.setString("PAUSE GAME\n[ENTER] TO RETURN \n[ESC] TO QUIT");
+    scoreText.setCharacterSize(48); // in pixels
+    scoreText.setColor(sf::Color::White);
+    scoreText.setStyle(sf::Text::Bold);
+}
+

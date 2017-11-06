@@ -100,7 +100,6 @@ void MenuState::update(cgf::Game* game)
 void MenuState::draw(cgf::Game *game)
 {
     menuSprite.setPosition(1,1);
-//    menuSprite->draw(game->getScreen());
     game->getScreen()->draw(menuSprite);
 }
 
