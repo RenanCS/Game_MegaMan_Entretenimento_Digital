@@ -27,6 +27,7 @@ class PauseState : public cgf::GameState
     void handleEvents(cgf::Game* game);
     void update(cgf::Game* game);
     void draw(cgf::Game* game);
+    void InitText();
 
     // Implement Singleton Pattern
     static PauseState* instance()
@@ -43,6 +44,9 @@ class PauseState : public cgf::GameState
     static PauseState m_PauseState;
     sf::RenderWindow* screen;
     cgf::InputManager* im;
+    cgf::Sprite background;
+    sf::Font font;
+    sf::Text scoreText;
 };
 
 #endif

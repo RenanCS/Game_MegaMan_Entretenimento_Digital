@@ -134,7 +134,11 @@ void PlayState::handleEvents(cgf::Game* game) {
     if (im->testEvent("stats"))
         game->toggleStats();
 
+<<<<<<< HEAD
     if (im->testEvent("return"))
+=======
+    if(im->testEvent("pause"))
+>>>>>>> e29f4cdebe9260f626c69d66e2b48fcb85c2910a
         game->pushState(PauseState::instance());
 
     if (im->testEvent("zoomout"))
@@ -707,7 +711,8 @@ void PlayState::ControlSetting() {
     im->addKeyInput("shoot", sf::Keyboard::A);
     im->addKeyInput("jump", sf::Keyboard::S);
     im->addMouseInput("rightclick", sf::Mouse::Right);
-    im->addKeyInput("pause", sf::Keyboard::Return);
+    im->addKeyInput("pause", sf::Keyboard::P);
+    //im->addKeyInput("pause", sf::Keyboard::Return);
     //im->addKeyInput("zoomout", sf::Keyboard::Z);
 
 }
