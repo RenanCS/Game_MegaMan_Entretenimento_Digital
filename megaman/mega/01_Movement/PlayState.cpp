@@ -52,7 +52,7 @@ sfx_str soundfx;
 
 #pragma region EVENT_GAME
 
-void PlayState::init(){
+void PlayState::init() {
     //Musica e sfx do cenario
     InitSound();
 
@@ -75,45 +75,45 @@ void PlayState::init(){
     cout << "PlayState: Init" << endl;
 }
 
-void PlayState::cleanup(){
+void PlayState::cleanup() {
     delete map;
     cout << "PlayState: Clean" << endl;
 }
 
-void PlayState::pause(){
+void PlayState::pause() {
     cout << "PlayState: Paused" << endl;
 }
 
-void PlayState::resume(){
+void PlayState::resume() {
     cout << "PlayState: Resumed" << endl;
 }
 
-void PlayState::handleEvents(cgf::Game* game){
+void PlayState::handleEvents(cgf::Game* game) {
     sf::Event event;
     sf::View view = screen->getView();
 
     while (screen->pollEvent(event))
     {
-        if(event.type == sf::Event::Closed)
+        if (event.type == sf::Event::Closed)
             game->quit();
     }
 
     dirx = diry = 0;
     shooting = false;
 
-    if(im->testEvent("left"))
+    if (im->testEvent("left"))
         dirx = -1;
 
-    if(im->testEvent("right"))
+    if (im->testEvent("right"))
         dirx = 1;
 
-    if(im->testEvent("shoot")){
+    if (im->testEvent("shoot")) {
         shooting = true;
         Shoot();
     }
 
-    if(im->testEvent("jump")){
-        if (!jumping){
+    if (im->testEvent("jump")) {
+        if (!jumping) {
 
             soundfx.jump.play();
 
@@ -122,22 +122,22 @@ void PlayState::handleEvents(cgf::Game* game){
         }
     }
 
-    if(last != dirx && dirx != 0){
+    if (last != dirx && dirx != 0) {
         megaman.setMirror(dirx == -1);
     }
 
     last = dirx;
 
-    if(im->testEvent("quit") || im->testEvent("rightclick"))
+    if (im->testEvent("quit") || im->testEvent("rightclick"))
         game->quit();
 
-    if(im->testEvent("stats"))
+    if (im->testEvent("stats"))
         game->toggleStats();
 
-    if(im->testEvent("return"))
+    if (im->testEvent("return"))
         game->pushState(PauseState::instance());
 
-    if(im->testEvent("zoomout"))
+    if (im->testEvent("zoomout"))
     {
         view.zoom(0.99);
         screen->setView(view);
@@ -145,7 +145,7 @@ void PlayState::handleEvents(cgf::Game* game){
 
 }
 
-void PlayState::InitSound(){
+void PlayState::InitSound() {
     music.openFromFile("data/audio/Stage.ogg");
     music.setVolume(50);
     music.play();
@@ -164,10 +164,10 @@ void PlayState::InitSound(){
     soundfx.explosion.setVolume(50);
 }
 
-void PlayState::InitScore(){
+void PlayState::InitScore() {
     if (!font.loadFromFile("data/fonts/Altebro.ttf"))
     {
-        cout << "Cannot load arial.ttf font!" << endl;
+        cout << "Cannot load Altebro.ttf font!" << endl;
         exit(1);
     }
     scoreText.setFont(font);
@@ -224,7 +224,8 @@ void PlayState::AddEnemy(int id, int x, int y) {
     enemies.push_back(ene);
 }
 
-void PlayState::AddBoss(){
+void PlayState::AddBoss() {
+    bossState = 0;
     AddEnemy(1, 2800, 280);
     enemy* boss = &enemies[0];
     boss->sprite.setMirror(true);
@@ -232,9 +233,9 @@ void PlayState::AddBoss(){
     rock.load("data/img/rock.png", 32, 32, 0, 0, 0, 0, 1, 1, 1);
 }
 
-void PlayState::Shoot(){
+void PlayState::Shoot() {
 
-    if(shootDelay == 0) {
+    if (shootDelay == 0) {
         //Delay entre disparos
         shootDelay = 5;
         //Som do disparo
@@ -257,7 +258,7 @@ void PlayState::Shoot(){
     }
 }
 
-sf::Uint16 PlayState::getCellFromMap(uint8_t layernum, float x, float y){
+sf::Uint16 PlayState::getCellFromMap(uint8_t layernum, float x, float y) {
     auto& layers = map->GetLayers();
     tmx::MapLayer& layer = layers[layernum];
     sf::Vector2u mapsize = map->GetMapSize();
@@ -270,17 +271,17 @@ sf::Uint16 PlayState::getCellFromMap(uint8_t layernum, float x, float y){
 }
 
 
-std::string to_zero_lead(const int value, const unsigned precision){
+std::string to_zero_lead(const int value, const unsigned precision) {
      std::ostringstream oss;
      oss << std::setw(precision) << std::setfill('0') << value;
      return oss.str();
 }
 
-void PlayState::update(cgf::Game* game){
-    if(enemyDelay <= 0 && !onBoss){
+void PlayState::update(cgf::Game* game) {
+    if (enemyDelay <= 0 && !onBoss) {
         srand (time(NULL));
         int randN = rand() % 100;
-        if(randN >= 50){
+        if (randN >= 50) {
             AddEnemy(3, megaman.getPosition().x, 0);
         } else {
             AddEnemy(3, megaman.getPosition().x, 400);
@@ -290,7 +291,7 @@ void PlayState::update(cgf::Game* game){
         enemyDelay -= 1;
     }
 
-    if(alive){
+    if (alive) {
         //Atualiza informações do mega man
         UpdateMegaman(game);
 
@@ -300,12 +301,12 @@ void PlayState::update(cgf::Game* game){
         // Atualiza comportamento dos inimigos
         UpdateEnemy(game);
 
-        if(onBoss){
+        if (onBoss) {
             UpdateRock(game);
         }
     } else {
         gameoverCount -= 1;
-        if(gameoverCount <= 0){
+        if (gameoverCount <= 0) {
             Clear();
             game->changeState(MenuState::instance());
         }
@@ -320,9 +321,9 @@ void PlayState::update(cgf::Game* game){
     centerMapOnPlayer();
 }
 
-void PlayState::UpdateMegaman(cgf::Game* game){
+void PlayState::UpdateMegaman(cgf::Game* game) {
 
-    if((hpbartiles.size() == 0 && damageDelay == 50) || megaman.getPosition().y > 400){
+    if ((hpbartiles.size() == 0 && damageDelay == 50) || megaman.getPosition().y > 400) {
         Died();
     } else {
         //Obtem o ambiente
@@ -336,7 +337,7 @@ void PlayState::UpdateMegaman(cgf::Game* game){
         damageDelay -= damageDelay > 0 ? 1 : 0;
         walking = dirx != 0;
 
-        if(jumpCount > 0){
+        if (jumpCount > 0) {
             diry = -1;
         } else {
             diry = 1;
@@ -352,7 +353,7 @@ void PlayState::UpdateMegaman(cgf::Game* game){
         sf::Uint16 tile = checkCollision(1, game, &megaman);
         //cout << "Tile: " << tile << endl;
 
-        switch(tile){
+        switch(tile) {
             case 21: //floor
             break;
             case 2: // ceiling
@@ -363,7 +364,7 @@ void PlayState::UpdateMegaman(cgf::Game* game){
             break;
         }
 
-        if(megaman.getPosition().x >= 2435 && !onBoss){
+        if (megaman.getPosition().x >= 2435 && !onBoss) {
             onBoss = true;
             enemies.clear();
             AddBoss();
@@ -378,7 +379,7 @@ void PlayState::UpdateMegaman(cgf::Game* game){
     }
 }
 
-void PlayState::Died(){
+void PlayState::Died() {
     alive = false;
     gameoverCount = 100;
     music.openFromFile("data/audio/GameOver.ogg");
@@ -387,13 +388,22 @@ void PlayState::Died(){
     soundfx.die.play();
 }
 
-void PlayState::Clear(){
+void PlayState::Winned(){
+    alive = false;
+    gameoverCount = 200;
+    music.openFromFile("data/audio/StageClear.ogg");
+    music.setLoop(false);
+    music.play();
+    //soundfx.die.play();
+}
+
+void PlayState::Clear() {
     hpbartiles.clear();
     enemies.clear();
     shoots.clear();
 }
 
-void PlayState::SetMegamanAnim(){
+void PlayState::SetMegamanAnim() {
 
     //Configura animação do mega man
     int currentAnim = 0;
@@ -415,10 +425,10 @@ void PlayState::SetMegamanAnim(){
 
     currentAnim = state[w][j][s];
 
-    if(lastAnim != currentAnim){
+    if (lastAnim != currentAnim) {
         megaman.setAnimRate(15);
         megaman.stop();
-        switch(currentAnim){
+        switch(currentAnim) {
             case 0:
                 megaman.play();
                 megaman.setFrameRange(12,13);
@@ -454,18 +464,18 @@ void PlayState::SetMegamanAnim(){
     lastAnim = currentAnim;
 }
 
-void PlayState::UpdateShoots(cgf::Game* game){
+void PlayState::UpdateShoots(cgf::Game* game) {
     std::vector<int> shotRemove;
     std::vector<int> enemyRemove;
 
-    for (int i = 0; i < shoots.size(); i++){
+    for (int i = 0; i < shoots.size(); i++) {
         shoots[i].sprite.move(shoots[i].dir * 7,0);
-        for (int j = 0; j < enemies.size(); j++){
-            if(shoots[i].sprite.bboxCollision(enemies[j].sprite)){
-                if(enemies[j].damageDelay == 0){
+        for (int j = 0; j < enemies.size(); j++) {
+            if (shoots[i].sprite.bboxCollision(enemies[j].sprite)) {
+                if (enemies[j].damageDelay == 0) {
                     enemies[j].damageDelay = 5;
                     enemies[j].health -= 1;
-                    if(enemies[j].health == 0){
+                    if (enemies[j].health == 0) {
                         score += enemies[j].score;
                         enemyRemove.push_back(j);
                     }
@@ -475,31 +485,35 @@ void PlayState::UpdateShoots(cgf::Game* game){
             }
         }
 
-        if(std::abs(megaman.getPosition().x - shoots[i].sprite.getPosition().x)  > 500){
+        if (std::abs(megaman.getPosition().x - shoots[i].sprite.getPosition().x)  > 500) {
             shotRemove.push_back(i);
         }
     }
 
     // Remove inimigos e disparos
-    for(int i = 0; i < shotRemove.size(); i++ ){
+    for (int i = 0; i < shotRemove.size(); i++) {
         shoots.erase(shoots.begin() + shotRemove[i]);
     }
 
-    for(int i = 0; i < enemyRemove.size(); i++ ){
+    for (int i = 0; i < enemyRemove.size(); i++) {
+        if(onBoss){
+            rock.setVisible(false);
+            Winned();
+        }
         enemies.erase(enemies.begin() + enemyRemove[i]);
         soundfx.explosion.play();
     }
 }
 
-void PlayState::UpdateEnemy(cgf::Game* game){
+void PlayState::UpdateEnemy(cgf::Game* game) {
     int x, y;
     sf::Uint16 tile;
     std::vector<int> enemyRemove;
 
-    for (int i = 0; i < enemies.size(); i++){
+    for (int i = 0; i < enemies.size(); i++) {
         enemies[i].damageDelay -= enemies[i].damageDelay > 0 ? 1 : 0;
-        if(enemies[i].sprite.getPosition().y < 500){
-            switch(enemies[i].id){
+        if (enemies[i].sprite.getPosition().y < 500) {
+            switch(enemies[i].id) {
                 case 1:
                     UpdateBoss(game);
                     break;
@@ -509,7 +523,7 @@ void PlayState::UpdateEnemy(cgf::Game* game){
                     enemies[i].sprite.setXspeed(x * 25);
                     enemies[i].sprite.setYspeed(1 * 75);
                     tile = checkCollision(1, game, &enemies[i].sprite);
-                    if(tile == 21){
+                    if (tile == 21) {
                         enemies[i].sprite.move(0, -3);
                     }
                     break;
@@ -520,7 +534,7 @@ void PlayState::UpdateEnemy(cgf::Game* game){
                     enemies[i].sprite.setYspeed(y * 50);
                     break;
             }
-            if(damageDelay == 0 && enemies[i].sprite.bboxCollision(megaman)){
+            if (damageDelay == 0 && enemies[i].sprite.bboxCollision(megaman)) {
                 DamageMegaman(enemies[i].damage);
             }
             enemies[i].sprite.update(game->getUpdateInterval());
@@ -529,17 +543,17 @@ void PlayState::UpdateEnemy(cgf::Game* game){
         }
     }
 
-    for(int i = 0; i < enemyRemove.size(); i++ ){
+    for (int i = 0; i < enemyRemove.size(); i++ ) {
         enemies.erase(enemies.begin() + enemyRemove[i]);
         soundfx.explosion.play();
     }
 }
 
-void PlayState::DamageMegaman(int damage){
-    if(hpbartiles.size() > 0){
+void PlayState::DamageMegaman(int damage) {
+    if (hpbartiles.size() > 0) {
         soundfx.damage.play();
-        for(int j = 0; j < damage; j++){
-            if(hpbartiles.size() > 0){
+        for (int j = 0; j < damage; j++) {
+            if (hpbartiles.size() > 0) {
                 hpbartiles.pop_back();
             }
         }
@@ -547,20 +561,20 @@ void PlayState::DamageMegaman(int damage){
     }
 }
 
-void PlayState::UpdateBoss(cgf::Game* game){
+void PlayState::UpdateBoss(cgf::Game* game) {
     enemy* boss = &enemies[0];
     sf::Uint16 tile;
 
-    switch(bossState){
+    switch(bossState) {
         case 0: //jump to left
             boss->sprite.setXspeed(-100);
-            if(boss->sprite.getPosition().x > 2750){
+            if (boss->sprite.getPosition().x > 2750) {
                 boss->sprite.setYspeed(-50);
             } else {
                 boss->sprite.setYspeed(50);
             }
 
-            if(boss->sprite.getPosition().x <= 2500){
+            if (boss->sprite.getPosition().x <= 2500) {
                 bossTimer = 75;
                 bossState = 3;
                 rockDir = 1;
@@ -570,13 +584,13 @@ void PlayState::UpdateBoss(cgf::Game* game){
             break;
         case 1: //jump to right
             boss->sprite.setXspeed(100);
-            if(boss->sprite.getPosition().x < 2650){
+            if (boss->sprite.getPosition().x < 2650) {
                 boss->sprite.setYspeed(-50);
             } else {
                 boss->sprite.setYspeed(50);
             }
 
-            if(boss->sprite.getPosition().x >= 2900){
+            if (boss->sprite.getPosition().x >= 2900) {
                 bossTimer = 75;
                 bossState = 2;
                 rockDir = -1;
@@ -586,21 +600,21 @@ void PlayState::UpdateBoss(cgf::Game* game){
             break;
         case 2: // throw rock right
             boss->sprite.play();
-            if(bossTimer == 25){
+            if (bossTimer == 25) {
                 boss->sprite.setFrameRange(0,1);
             }
 
-            if(bossTimer <= 0){
+            if (bossTimer <= 0) {
                 boss->sprite.setCurrentFrame(2);
                 bossState = 0;
             }
             break;
         case 3: // throw rock left
             boss->sprite.play();
-            if(bossTimer == 25){
+            if (bossTimer == 25) {
                 boss->sprite.setFrameRange(0,1);
             }
-            if(bossTimer <= 0){
+            if (bossTimer <= 0) {
                 boss->sprite.stop();
                 boss->sprite.setCurrentFrame(2);
                 bossState = 1;
@@ -609,13 +623,13 @@ void PlayState::UpdateBoss(cgf::Game* game){
     }
     bossTimer -= 1;
     tile = checkCollision(1, game, &boss->sprite);
-    if(tile == 21){
+    if (tile == 21) {
         boss->sprite.move(0, -3);
     }
     boss->sprite.update(game->getUpdateInterval());
 }
 
-void PlayState::BossLand(bool mirror){
+void PlayState::BossLand(bool mirror) {
     enemy* boss = &enemies[0];
 
     boss->sprite.setXspeed(0);
@@ -627,38 +641,38 @@ void PlayState::BossLand(bool mirror){
     boss->sprite.setMirror(mirror);
 }
 
-void PlayState::BossRock(int x){
+void PlayState::BossRock(int x) {
     rock.setPosition(x, -50);
 }
 
-void PlayState::UpdateRock(cgf::Game* game){
-    if(bossTimer > 40){
-        if(rock.getPosition().y < 270){
+void PlayState::UpdateRock(cgf::Game* game) {
+    if (bossTimer > 40) {
+        if (rock.getPosition().y < 270) {
             rock.setXspeed(0);
             rock.setYspeed(500);
         } else {
             rock.setYspeed(0);
         }
-    } else if(bossState == 3 || bossState == 2) {
+    } else if (bossState == 3 || bossState == 2) {
         rock.setYspeed(10);
         rock.setXspeed(rockDir * 250);
     }
 
-    if(damageDelay == 0 && rock.bboxCollision(megaman)){
+    if (damageDelay == 0 && rock.bboxCollision(megaman)) {
         DamageMegaman(5);
     }
 
     rock.update(game->getUpdateInterval());
 }
 
-void PlayState::draw(cgf::Game* game){
+void PlayState::draw(cgf::Game* game) {
     screen = game->getScreen();
 
     map->Draw(*screen);
 
     screen->draw(megaman);
 
-    for (int i = 0; i < shoots.size(); i++){
+    for (int i = 0; i < shoots.size(); i++) {
         screen->draw(shoots[i].sprite);
     }
 
@@ -672,14 +686,14 @@ void PlayState::draw(cgf::Game* game){
         screen->draw(hpbartiles[i]);
     }
 
-    if(onBoss){
+    if (onBoss) {
         screen->draw(rock);
     }
 }
 
 #pragma region INITIAL_SETTING
 
-void PlayState::ControlSetting(){
+void PlayState::ControlSetting() {
 
     cout << "Configurando controles "  << endl;
 
@@ -698,7 +712,7 @@ void PlayState::ControlSetting(){
 
 }
 
-void PlayState::CreateMegaMan(){
+void PlayState::CreateMegaMan() {
 
     cout << "Criando Mega Man "  << endl;
     //Vivo
@@ -714,7 +728,7 @@ void PlayState::CreateMegaMan(){
 
     //Posição inicial do megaman
     //posx = 100;
-    posx = 2000;
+    posx = 100;
     posy = 285;
     walking = false;
 
@@ -730,21 +744,21 @@ void PlayState::CreateMegaMan(){
     InitHpBar();
 }
 
-void PlayState::InitHpBar(){
+void PlayState::InitHpBar() {
     //Inicializa o Mega man
     hpbar.load("data/img/hp_bar_background.png", 16, 84, 0, 0, 0, 0, 1, 1, 1);
     //hpbar.scale(1,1);
     //hpbar.scale(2,2);
     hpbar.setPosition(25,75);
 
-    for(int i = 0; i < 20; i++){
+    for (int i = 0; i < 20; i++) {
         cgf::Sprite tile;
         tile.load("data/img/hp_bar_tile.png", 12, 2, 0, 0, 0, 0, 1, 1, 1);
         hpbartiles.push_back(tile);
     }
 }
 
-void PlayState::CreateEnemies(){
+void PlayState::CreateEnemies() {
 
     cout << "Criando Inimigos "  << endl;
     enemyDelay = 50;
@@ -762,7 +776,7 @@ void PlayState::CreateEnemies(){
 
 #pragma region ADDITIONAL_CONFIGURATION
 
-void PlayState::centerMapOnPlayer(){
+void PlayState::centerMapOnPlayer() {
 
     sf::View view = screen->getView();
     sf::Vector2u mapsize = map->GetMapSize();
@@ -773,17 +787,17 @@ void PlayState::centerMapOnPlayer(){
     sf::Vector2f pos = megaman.getPosition();
 
     float panX = viewsize.x; // minimum pan
-    if(pos.x >= viewsize.x)
+    if (pos.x >= viewsize.x)
         panX = pos.x;
 
-    if(panX >= mapsize.x - viewsize.x)
+    if (panX >= mapsize.x - viewsize.x)
         panX = mapsize.x - viewsize.x;
 
     float panY = viewsize.y; // minimum pan
-    if(pos.y >= viewsize.y)
+    if (pos.y >= viewsize.y)
         panY = pos.y;
 
-    if(panY >= mapsize.y - viewsize.y)
+    if (panY >= mapsize.y - viewsize.y)
         panY = mapsize.y - viewsize.y;
 
     sf::Vector2f center(panX,panY);
@@ -796,12 +810,12 @@ void PlayState::centerMapOnPlayer(){
     // set hp bar position
     hpbar.setPosition(panX - 275, panY - 150);
 
-    for(int i = 0; i < hpbartiles.size(); i++){
+    for (int i = 0; i < hpbartiles.size(); i++) {
         hpbartiles[i].setPosition(hpbar.getPosition().x + 2, hpbar.getPosition().y + 79 - i*4);
     }
 }
 
- sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite* obj){
+ sf::Uint16 PlayState::checkCollision(uint8_t layer, cgf::Game* game, cgf::Sprite* obj) {
      int i, x1, x2, y1, y2;
      sf::Uint16 bump;
 
@@ -859,7 +873,7 @@ void PlayState::centerMapOnPlayer(){
                      px -= objsize.x;// + 1;
                      vx = 0;
 
-                     if(upRight)
+                     if (upRight)
                          bump = upRight;
                      else
                          bump = downRight;
@@ -877,7 +891,7 @@ void PlayState::centerMapOnPlayer(){
                      px = (x1+1) * tilesize.x;
                      vx = 0;
 
-                     if(upLeft)
+                     if (upLeft)
                          bump = upLeft;
                      else
                          bump = downLeft;
@@ -924,7 +938,7 @@ void PlayState::centerMapOnPlayer(){
                      py -= objsize.y;
                      vy = 0;
 
-                     if(downLeft)
+                     if (downLeft)
                          bump = downLeft;
                      else
                          bump = downRight;
@@ -942,7 +956,7 @@ void PlayState::centerMapOnPlayer(){
                     py = (y1 + 1) * tilesize.y;
                     vy = 0;
 
-                    if(upLeft)
+                    if (upLeft)
                         bump = upLeft;
                     else
                         bump = upRight;
@@ -980,9 +994,9 @@ void PlayState::centerMapOnPlayer(){
      else if (px + objsize.x >= mapsize.x * tilesize.x)
          obj->setPosition(mapsize.x*tilesize.x - objsize.x - 1,py);
 
-     if(py < 0)
+     if (py < 0)
          obj->setPosition(px,0);
-     else if(py + objsize.y >= mapsize.y * tilesize.y)
+     else if (py + objsize.y >= mapsize.y * tilesize.y)
          obj->setPosition(px, mapsize.y*tilesize.y - objsize.y - 1);
      */
      return bump;

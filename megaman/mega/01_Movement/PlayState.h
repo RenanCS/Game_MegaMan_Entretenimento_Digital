@@ -54,6 +54,7 @@ class PlayState : public cgf::GameState
     void Shoot();
     void Clear();
     void Died();
+    void Winned();
 
     // Implement Singleton Pattern
     static PlayState* instance()
