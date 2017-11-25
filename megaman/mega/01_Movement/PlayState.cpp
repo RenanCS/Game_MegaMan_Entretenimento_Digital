@@ -33,6 +33,7 @@ typedef struct sfx_str{
     sf::Music die;
     sf::Music jump;
     sf::Music explosion;
+    sf::Music pause;
 } sfx_str;
 
 typedef struct enemy{
@@ -134,12 +135,10 @@ void PlayState::handleEvents(cgf::Game* game) {
     if (im->testEvent("stats"))
         game->toggleStats();
 
-<<<<<<< HEAD
-    if (im->testEvent("return"))
-=======
-    if(im->testEvent("pause"))
->>>>>>> e29f4cdebe9260f626c69d66e2b48fcb85c2910a
+    if(im->testEvent("pause")){
+        soundfx.pause.play();
         game->pushState(PauseState::instance());
+    }
 
     if (im->testEvent("zoomout"))
     {
@@ -160,6 +159,7 @@ void PlayState::InitSound() {
     soundfx.die.openFromFile("data/audio/Die.wav");
     soundfx.jump.openFromFile("data/audio/Jump.wav");
     soundfx.explosion.openFromFile("data/audio/Explosion.wav");
+    soundfx.pause.openFromFile("data/audio/PauseMenu.wav");
 
     soundfx.buster.setVolume(50);
     soundfx.damage.setVolume(50);
